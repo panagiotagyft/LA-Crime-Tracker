@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: myuser # Set PostgreSQL user
+      POSTGRES_PASSWORD: example # Set PostgreSQL password
+      POSTGRES_DB: mydatabase # Set PostgreSQL database
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    network_mode: "host"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    network_mode: "host"
+    #   - app-network
+
+  python_app:
+    build:
+      context: . # Use the current directory to build
+      dockerfile: Dockerfile # Specify the Dockerfile for the Python script
+    depends_on:
+      - db
+    # networks:
+    #   - app-network
+
+volumes:
+  pgdata:
+# networks:
+#   app-network:
