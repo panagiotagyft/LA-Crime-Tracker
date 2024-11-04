@@ -7,7 +7,7 @@ from datetime import datetime
 DB_HOST = 'localhost'
 DB_NAME = 'LA Crimes'
 DB_USER = 'postgres'
-DB_PASS = '123098giota'
+DB_PASS = 'p/w'
 CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
 
 # Connect to the PostgreSQL database
