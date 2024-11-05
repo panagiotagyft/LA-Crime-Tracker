@@ -10,7 +10,7 @@ def create_connection():
             connection = psycopg2.connect(
                 user="myuser",
                 password="example",
-                host="localhost",         # Use service name as defined in docker-compose.yml
+                host="0.0.0.0",         # Use service name as defined in docker-compose.yml
                 port="5432",
                 database="mydatabase"
             )

@@ -5,10 +5,12 @@ from datetime import datetime
 
 # Replace with your actual details
 DB_HOST = 'localhost'
-DB_NAME = 'LA Crimes'
+# DB_HOST = '0.0.0.0'
+DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
-DB_PASS = 'p/w'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
+DB_PASS = 'example'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241105.csv'
+sql_file_path = 'create_tables.sql' # Good practice to keep SQL queries in a separate file
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
@@ -21,6 +23,37 @@ cursor = conn.cursor()
 
 # Load the CSV file into a pandas DataFrame
 df = pd.read_csv(CSV_FILE_PATH)
+print(df.head())
+# exit()
+
+print("Df size: ", df.shape)
+print("Df columns: ", df.columns)
+print("Df info: ", df.info())
+print("Df describe: ", df.describe())
+print("Df isnull: ", df.isnull().sum())
+
+try:
+    # Connect to PostgreSQL
+    cur = cursor
+
+    # Read and execute SQL file
+    with open(sql_file_path, 'r') as f:
+        sql_commands = f.read()
+        cur.execute(sql_commands)
+        conn.commit()
+    
+    print("Tables created successfully.")
+
+    # Close the cursor and connection
+    cur.close()
+    conn.close()
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    
+print("Tables created successfully.")
+
+
 
 # Functions for parsing dates and times
 def parse_date(date_str):
@@ -35,12 +68,14 @@ def parse_time(time_val):
 
 # Preprocess the DataFrame
 df['Date Rptd'] = df['Date Rptd'].apply(parse_date)
+print("ok for preprocessing date")
 df['DATE OCC'] = df['DATE OCC'].apply(parse_date)
 # df['TIME OCC'] = df['TIME OCC'].apply(parse_time)
-
+print("ok for preprocessing date oc")
 # Insert data into the 'area' table
 area_df = df[['AREA', 'AREA NAME']].rename(columns={'AREA': 'area_id', 'AREA NAME': 'area_name'})
 area_records = area_df.drop_duplicates(subset=['area_id']).to_dict('records')
+print("drop duplicates")
 execute_batch(cursor, """
     INSERT INTO area (area_id, area_name)
     VALUES (%s, %s)
