@@ -36,6 +36,6 @@ results = cursor.fetchall()
 for row in results:
     print(f"{row[0]} -> {row[1]}")
 print(len(results))
-# Finalize transaction and close connection
+
 cursor.close()
 conn.close()
