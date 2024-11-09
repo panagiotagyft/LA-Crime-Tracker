@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS crime_location (
 -- Create the new crime_chronicle table
 CREATE TABLE IF NOT EXISTS crime_chronicle (
     date_occ DATE NOT NULL,
-    time_occ INT NOT NULL,
+    time_occ TIME NOT NULL,
     PRIMARY KEY (date_occ, time_occ)
 );
 
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS crime_report (
   dr_no INT PRIMARY KEY,
   date_rptd DATE NOT NULL,
   crime_chronicle_date_occ DATE NOT NULL,
-  crime_chronicle_time_occ INT NOT NULL,
+  crime_chronicle_time_occ TIME NOT NULL,
   status_status VARCHAR(10) NOT NULL,
   premises_premis_cd INT NOT NULL,
   reporting_district_rpt_dist_no INT NOT NULL,
