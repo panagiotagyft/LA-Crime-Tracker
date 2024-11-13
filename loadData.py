@@ -9,7 +9,8 @@ DB_HOST = 'localhost'
 DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = 'example'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241105.csv'
+DB_PORT = '5432'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112.csv'
 sql_file_path = 'create_tables.sql' # Good practice to keep SQL queries in a separate file
 
 # Connect to the PostgreSQL database
@@ -45,8 +46,8 @@ try:
     print("Tables created successfully.")
 
     # Close the cursor and connection
-    cur.close()
-    conn.close()
+    # cur.close()
+    # conn.close()
 
 except Exception as e:
     print(f"An error occurred: {e}")

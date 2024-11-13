@@ -11,8 +11,9 @@ services:
       POSTGRES_USER: postgres # Set PostgreSQL user
       POSTGRES_PASSWORD: example # Set PostgreSQL password
       POSTGRES_DB: LA_Crimes # Set PostgreSQL database
+      PGDATA: /var/lib/postgresql/data/
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data/
     # network_mode: "host"
     networks:
       - app-network
