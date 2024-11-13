@@ -241,37 +241,41 @@ sql="""
 start_time='00:00:00'
 end_time='23:59:00'
 N=15
-sql="""   
-    WITH AuxiliaryTable AS(
+sql=""" 
+    WITH AuxiliaryTable1 AS(
         SELECT crime_type_crm_cd AS crime_cd, 
-               crime_chronicle_date_occ as date,
-               weapon_weapon_used_cd AS weapon_cd,
-               area_area_id
+            crime_chronicle_date_occ as date,
+            weapon_weapon_used_cd AS weapon_cd,
+            area_area_id AS area_id
         FROM la_crimes.crime_report 
         JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no
         WHERE crime_chronicle_time_occ BETWEEN %s AND %s
         GROUP BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_weapon_used_cd, area_area_id 
-        HAVING COUNT(*) = %s
+        HAVING COUNT(crime_type_crm_cd) = %s
         ORDER BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_weapon_used_cd, area_area_id
     ),
-    AuxiliaryTable2 AS(
-        SELECT area_id, area_name, crime_cd, crm_cd_desc, weapon_cd, weapon_desc 
-        FROM AuxiliaryTable 
-        JOIN la_crimes.area ON area_area_id = area_id
-        JOIN la_crimes.crime_type ON crm_cd=crime_cd
-        JOIN la_crimes.weapon ON weapon_used_cd=weapon_cd
+    DR_NO_LIST AS(
+        SELECT dr_no
+        FROM AuxiliaryTable1
+        JOIN la_crimes.crime_report ON crime_chronicle_date_occ=date AND crime_type_crm_cd=crime_cd AND area_area_id = area_id
+        JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no AND  weapon_weapon_used_cd=weapon_cd
     )
-    SELECT DISTINCT dr_no, area_name, crm_cd_desc, weapon_desc
-    FROM AuxiliaryTable2 AS at
-    JOIN la_crimes.crime_report ON at.area_id=area_area_id AND crime_type_crm_cd=at.crime_cd
-    JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no AND weapon_weapon_used_cd=at.weapon_cd
+    SELECT DISTINCT report.dr_no, area_name, crm_cd_desc, weapon_desc
+    FROM DR_NO_LIST AS dr
+    JOIN la_crimes.crime_report AS report ON dr.dr_no = report.dr_no 
+    JOIN la_crimes.area ON area_area_id=area_id 
+    JOIN la_crimes.crime_type ON crm_cd=crime_type_crm_cd
+    JOIN la_crimes.crime_report_has_weapon ON report.dr_no = crime_report_dr_no
+    JOIN la_crimes.weapon ON weapon_weapon_used_cd=weapon_used_cd
+
+    
 """
 cursor.execute(sql, (start_time,end_time, N))
 
 # Fetch results
 results = cursor.fetchall()
 for row in results:
-    print(f"{row[0]} {row[1]} {row[2]}, {row[3]}")
+    print(f"{row[0]}, {row[1]}, {row[2]}, {row[3]}")
 print()
 
 cursor.close()
