@@ -225,12 +225,50 @@ sql="""
     GROUP BY date_rptd, weapon_cd
 """
 
-cursor.execute(sql, (start_time,end_time))
+# cursor.execute(sql, (start_time,end_time))
+
+# Fetch results
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]} {row[1]} {row[2]}")
+# print()
+
+# ------------------------------------------------------------------------------------------------------
+# -- 13:  Find the crimes that occurred for a given number of times N on the same day, in the same
+#         area, using the same weapon, for a specific time range. Return the list of division of 
+#         records numbers, the area name, the crime code description and the weapon description.
+# ------------------------------------------------------------------------------------------------------
+start_time='00:00:00'
+end_time='23:59:00'
+N=15
+sql="""   
+    WITH AuxiliaryTable AS(
+        SELECT crime_type_crm_cd AS crime_cd, 
+               crime_chronicle_date_occ as date,
+               weapon_desc, 
+               weapon_used_cd AS weapon_cd,
+               area_area_id
+        FROM la_crimes.crime_report 
+        JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no
+        JOIN la_crimes.weapon ON weapon_used_cd=weapon_weapon_used_cd
+        WHERE crime_chronicle_time_occ BETWEEN %s AND %s
+        GROUP BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_desc, weapon_used_cd, area_area_id 
+        HAVING COUNT(*) = %s
+        ORDER BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_desc, weapon_used_cd, area_area_id
+    )
+    SELECT dr_no, area_name, crm_cd_desc, weapon_desc 
+    FROM AuxiliaryTable AS at
+    JOIN la_crimes.area ON at.area_area_id = area_id
+    JOIN la_crimes.crime_type ON crm_cd=crime_cd
+    JOIN la_crimes.crime_report AS report ON report.area_area_id=at.area_area_id AND report.crime_type_crm_cd=at.crime_cd
+    JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no AND weapon_weapon_used_cd=weapon_cd;
+"""
+cursor.execute(sql, (start_time,end_time, N))
 
 # Fetch results
 results = cursor.fetchall()
 for row in results:
-    print(f"{row[0]} {row[1]} {row[2]}")
+    print(f"{row[0]} {row[1]} {row[2]}, {row[3]}")
 print()
 
 cursor.close()
