@@ -4,20 +4,29 @@ services:
   db:
     image: postgres
     restart: always
+    ports:
+      - 5432:5432
     environment:
-      POSTGRES_USER: myuser # Set PostgreSQL user
+      # POSTGRES_SERVER: db # Set PostgreSQL server
+      POSTGRES_USER: postgres # Set PostgreSQL user
       POSTGRES_PASSWORD: example # Set PostgreSQL password
-      POSTGRES_DB: mydatabase # Set PostgreSQL database
+      POSTGRES_DB: LA_Crimes # Set PostgreSQL database
+      PGDATA: /var/lib/postgresql/data/
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    network_mode: "host"
+      - pgdata:/var/lib/postgresql/data/
+    # network_mode: "host"
+    networks:
+      - app-network
 
   adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
-    network_mode: "host"
+    networks:
+      - app-network
+
+    # network_mode: "host"
     #   - app-network
 
   python_app:
@@ -26,10 +35,10 @@ services:
       dockerfile: Dockerfile # Specify the Dockerfile for the Python script
     depends_on:
       - db
-    # networks:
-    #   - app-network
+    networks:
+      - app-network
 
 volumes:
   pgdata:
-# networks:
-#   app-network:
+networks:
+  app-network:

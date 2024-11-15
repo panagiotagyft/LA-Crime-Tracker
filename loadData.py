@@ -21,6 +21,37 @@ cursor = conn.cursor()
 
 # Load the CSV file into a pandas DataFrame
 df = pd.read_csv(CSV_FILE_PATH)
+print(df.head())
+# exit()
+
+print("Df size: ", df.shape)
+print("Df columns: ", df.columns)
+print("Df info: ", df.info())
+print("Df describe: ", df.describe())
+print("Df isnull: ", df.isnull().sum())
+
+try:
+    # Connect to PostgreSQL
+    cur = cursor
+
+    # Read and execute SQL file
+    with open(sql_file_path, 'r') as f:
+        sql_commands = f.read()
+        cur.execute(sql_commands)
+        conn.commit()
+    
+    print("Tables created successfully.")
+
+    # Close the cursor and connection
+    # cur.close()
+    # conn.close()
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    
+print("Tables created successfully.")
+
+
 
 # Functions for parsing dates and times
 def parse_date(date_str):
@@ -35,6 +66,7 @@ def parse_time(time_val):
 
 # Preprocess the DataFrame
 df['Date Rptd'] = df['Date Rptd'].apply(parse_date)
+print("ok for preprocessing date")
 df['DATE OCC'] = df['DATE OCC'].apply(parse_date)
 df['TIME OCC'] = df['TIME OCC'].apply(parse_time)
 
