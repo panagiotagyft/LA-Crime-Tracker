@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className='home'>
       <div className='homeWrapper'>
-        <div className='homeForm'> {/* Στυλ με gap στο CSS */}
+        <div className='homeForm'> 
           {forms.map((form, index) => (
             <div key={index} style={{ marginBottom: '10px' }}>
               {form}
