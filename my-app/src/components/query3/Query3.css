@@ -45,11 +45,9 @@
 
 .query3Line {
     width: 80%;
-    /* Full width of the container */
     height: 1px;
-    /* Thin line */
     background-color: #263238;
-    /* Add spacing above and below the line */
+    margin: 10px 0;
     border: none;
 }
 
