@@ -18,12 +18,12 @@ CREATE TABLE  Status (
   status_desc VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Premises (
+CREATE TABLE Premise (
   premis_cd INTEGER PRIMARY KEY,
   premis_desc VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Reporting_Districts (
+CREATE TABLE Reporting_District (
   rpt_dist_no INTEGER NOT NULL,
   area_id INTEGER NOT NULL,
   PRIMARY KEY (rpt_dist_no),
@@ -31,12 +31,14 @@ CREATE TABLE Reporting_Districts (
 );
 -- -------------------------------------------------------------
 CREATE TABLE Crime_code (
+  cr_id SERIAL PRIMARY KEY,
   crm_cd INTEGER,
-  crm_cd_2 INTEGER,
-  crm_cd_3 INTEGER,
-  crm_cd_4 INTEGER,
   crm_cd_desc VARCHAR(100) NOT NULL,
-  PRIMARY KEY (crm_cd, crm_cd_2, crm_cd_3, crm_cd_4)
+);
+-- ------------------------------------------
+CREATE TABLE Weapon(
+  weapon_cd INTEGER PRIMARY KEY,
+  weapon_desc VARCHAR(100)
 );
 -- --------------------------------------------------------------
 CREATE TABLE Crime_report (
@@ -45,7 +47,7 @@ CREATE TABLE Crime_report (
   date_occ DATE NOT NULL,
   time_occ TIME NOT NULL,
   status_code VARCHAR(10) NOT NULL REFERENCES Status(status_code),
-  premis_cd INTEGER NOT NULL REFERENCES Premises(premis_cd),
+  premis_cd INTEGER NOT NULL REFERENCES Premise(premis_cd),
   rpt_dist_no INTEGER NOT NULL REFERENCES Reporting_District(rpt_dist_no), 
   area_id INTEGER NOT NULL REFERENCES Area(area_id),
   location_id INTEGER REFERENCES Crime_Location(location_id),
@@ -56,11 +58,6 @@ CREATE TABLE Crime_report (
   crime_code_crm_cd_3 INTEGER,
   crime_code_crm_cd_4 INTEGER,
   FOREIGN KEY (crime_code_crm_cd, crime_code_crm_cd_2, crime_code_crm_cd_3, crime_code_crm_cd_4) REFERENCES Crime_code (crm_cd, crm_cd_2, crm_cd_3, crm_cd_4)
-);
-
-CREATE TABLE Weapon (
-  weapon_cd INTEGER PRIMARY KEY,
-  weapon_desc VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS Victim (
