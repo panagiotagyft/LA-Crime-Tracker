@@ -31,7 +31,7 @@ export default function Query12() {
     <div className='query12'>
       <div className='query12Box'>
         <div className='query12Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query12Desc'>Find the number of division of records for crimes reported on the same day in different areas using the same weapon for a specific time range.</span>
+          <span className='query12Desc'>12. Find the number of division of records for crimes reported on the same day in different areas using the same weapon for a specific time range.</span>
         </div>
         <hr className='query12Line' />
         {isFormVisible && (

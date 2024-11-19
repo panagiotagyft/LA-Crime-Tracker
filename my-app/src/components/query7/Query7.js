@@ -31,7 +31,7 @@ export default function Query7() {
     <div className='query7'>
       <div className='query7Box'>
         <div className='query7Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query7Desc'>Find the pair of crimes that has co-occurred in the area with the most reported incidents for a specific date range.</span>
+          <span className='query7Desc'>7. Find the pair of crimes that has co-occurred in the area with the most reported incidents for a specific date range.</span>
         </div>
         <hr className='query7Line' />
         {isFormVisible && (

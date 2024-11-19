@@ -33,7 +33,7 @@ export default function Query2() {
       <div className='query2Box'>
         
         <div className='query2Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query2Desc'> Find the total number of reports per day for a specific “Crm Cd” and time range.</span>
+          <span className='query2Desc'>2. Find the total number of reports per day for a specific “Crm Cd” and time range.</span>
         </div>
 
         <hr className='query2Line' />

@@ -23,7 +23,7 @@ export default function Query3() {
     <div className='query3'>
       <div className='query3Box'>
         <div className='query3Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query3Desc'>Find the most common crime committed regardless of code 1, 2, 3, and 4, per area for a specific day.</span>
+          <span className='query3Desc'>3. Find the most common crime committed regardless of code 1, 2, 3, and 4, per area for a specific day.</span>
         </div>
         <hr className='query3Line' />
         {isFormVisible && (

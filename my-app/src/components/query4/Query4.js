@@ -31,7 +31,7 @@ export default function Query4() {
     <div className='query4'>
       <div className='query4Box'>
         <div className='query4Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query4Desc'>Find the total number of reports per “Crm Cd” that occurred within a specified date range and sort them in a descending order.</span>
+          <span className='query4Desc'>4. Find the total number of reports per “Crm Cd” that occurred within a specified date range and sort them in a descending order.</span>
         </div>
         <hr className='query4Line' />
         {isFormVisible && (

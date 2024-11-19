@@ -42,7 +42,7 @@ export default function Query10() {
     <div className="query10">
           <div className="query10Box">
         <div className='query10Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query10Desc'>Find the area with the longest time range without an occurrence of a specific crime. Include the time range in the results. The same for Rpt Dist No.</span>
+          <span className='query10Desc'>10. Find the area with the longest time range without an occurrence of a specific crime. Include the time range in the results. The same for Rpt Dist No.</span>
         </div>
         <hr className='query10Line' />
      {isFormVisible && (

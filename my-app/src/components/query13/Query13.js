@@ -33,7 +33,7 @@ export default function Query13() {
       <div className='query13Box'>
         
         <div className='query13Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query13Desc'> Find the total number of reports per day for a specific “N” and time range.</span>
+          <span className='query13Desc'>13. Find the total number of reports per day for a specific “N” and time range.</span>
         </div>
 
         <hr className='query13Line' />

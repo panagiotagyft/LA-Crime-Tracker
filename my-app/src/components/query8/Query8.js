@@ -31,7 +31,7 @@ export default function Query8() {
     <div className='query8'>
       <div className='query8Box'>
         <div className='query8Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query8Desc'> Find the second most common crime that has co-occurred with a particular crime for a specific date range.</span>
+          <span className='query8Desc'>8. Find the second most common crime that has co-occurred with a particular crime for a specific date range.</span>
         </div>
         <hr className='query8Line' />
         {isFormVisible && (

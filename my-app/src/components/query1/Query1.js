@@ -31,7 +31,7 @@ export default function Query1() {
     <div className='query1'>
       <div className='query1Box'>
         <div className='query1Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query1Desc'>Find the total number of reports per “Crm Cd” that occurred within a specified time range and sort them in a descending order.</span>
+          <span className='query1Desc'>1. Find the total number of reports per “Crm Cd” that occurred within a specified time range and sort them in a descending order.</span>
         </div>
         <hr className='query1Line' />
         {isFormVisible && (
