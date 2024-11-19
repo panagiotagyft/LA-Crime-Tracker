@@ -5,7 +5,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 const UserNavbar = ({ userEmail, onLogout }) => {
   return (
     <Navbar bg="light" expand="lg">
-      <Navbar.Brand href="/home"><HomeOutlinedIcon /></Navbar.Brand>
+      <Navbar.Brand href="/home"><HomeOutlinedIcon></HomeOutlinedIcon></Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse className="justify-content-end">
         <Nav>
