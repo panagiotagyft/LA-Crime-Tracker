@@ -1,36 +1,17 @@
-.list {
-    max-width: 400px;
-    margin: 0 auto;
+.home {
+    background: linear-gradient(#eceff1, #37474f);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.item {
-    border: 1px solid #ccc;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.title {
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.form {
-    margin-top: 10px;
-}
-
-form label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-form input {
+.homeWrapper {
     width: 100%;
-    margin-bottom: 10px;
-    padding: 5px;
+    padding-top: 100px;
 }
 
-form button {
-    padding: 5px 10px;
-    cursor: pointer;
+.homeForm {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
