@@ -13,7 +13,15 @@ import Query10 from '../../components/query10/Query10';
 import Query12 from '../../components/query12/Query12';
 import Query13 from '../../components/query13/Query13';
 
+import UserNavbar from '../../components/navbar/UserNavbar'; 
+
 export default function Home() {
+  const userEmail = 'user@example.com';
+
+  const handleLogout = () => {
+    console.log('User logged out');
+  };
+
   const forms = [
     <Query1 key="form1" />,
     <Query2 key="form2" />,
@@ -32,6 +40,7 @@ export default function Home() {
 
   return (
     <div className='home'>
+      <UserNavbar userEmail={userEmail} onLogout={handleLogout} /> {/* Προσθήκη του Navbar */}
       <div className='homeWrapper'>
         <div className='homeForm'> 
           {forms.map((form, index) => (

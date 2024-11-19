@@ -3,11 +3,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .homeWrapper {
     width: 100%;
-    padding-top: 100px;
+    padding-top: 150px;
 }
 
 .homeForm {
@@ -15,3 +16,4 @@
     flex-direction: column;
     gap: 20px;
 }
+
