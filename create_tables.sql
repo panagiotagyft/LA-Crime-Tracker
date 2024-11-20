@@ -1,11 +1,11 @@
 
-CREATE TABLE Area (
+CREATE TABLE IF NOT EXISTS Area (
   area_id INTEGER NOT NULL,
   area_name VARCHAR(50) NOT NULL,
   PRIMARY KEY (area_id)
 );
 
-CREATE TABLE Crime_Location (
+CREATE TABLE IF NOT EXISTS Crime_Location (
   location_id SERIAL PRIMARY KEY,
   location VARCHAR(100) NOT NULL,
   lat NUMERIC(10,7) NOT NULL,
@@ -13,53 +13,56 @@ CREATE TABLE Crime_Location (
   cross_street VARCHAR(100) DEFAULT NULL
 );
 
-CREATE TABLE  Status (
+CREATE TABLE IF NOT EXISTS  Status (
   status_code VARCHAR(10) PRIMARY KEY,
   status_desc VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Premise (
+CREATE TABLE IF NOT EXISTS Premises (
   premis_cd INTEGER PRIMARY KEY,
   premis_desc VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Reporting_District (
-  rpt_dist_no INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS Reporting_District (
+  rpt_dist_no INTEGER NOT NULL PRIMARY KEY,
   area_id INTEGER NOT NULL,
-  PRIMARY KEY (rpt_dist_no),
   FOREIGN KEY (area_id) REFERENCES Area(area_id)
 );
 -- -------------------------------------------------------------
-CREATE TABLE Crime_code (
-  cr_id SERIAL PRIMARY KEY,
-  crm_cd INTEGER,
-  crm_cd_desc VARCHAR(100) NOT NULL,
+CREATE TABLE IF NOT EXISTS Crime_code (
+  crm_cd_id SERIAL PRIMARY KEY,
+  crm_cd INTEGER NOT NULL,
+  crm_cd_desc VARCHAR(100)
 );
 -- ------------------------------------------
-CREATE TABLE Weapon(
+CREATE TABLE IF NOT EXISTS Weapon(
   weapon_cd INTEGER PRIMARY KEY,
   weapon_desc VARCHAR(100)
 );
--- --------------------------------------------------------------
-CREATE TABLE Crime_report (
-  dr_no INTEGER PRIMARY KEY,
-  date_rptd DATE NOT NULL,
+--------------------------------------------
+CREATE TABLE IF NOT EXISTS Timestamp (
+  timestamp_id SERIAL PRIMARY KEY,
   date_occ DATE NOT NULL,
-  time_occ TIME NOT NULL,
+  time_occ TIME NOT NULL
+);
+-- --------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Crime_report (
+  dr_no BIGINT PRIMARY KEY,
+  date_rptd DATE NOT NULL,
+  timestamp_id INTEGER NOT NULL REFERENCES Timestamp(timestamp_id),
   status_code VARCHAR(10) NOT NULL REFERENCES Status(status_code),
-  premis_cd INTEGER NOT NULL REFERENCES Premise(premis_cd),
+  premis_cd INTEGER NOT NULL REFERENCES Premises(premis_cd),
   rpt_dist_no INTEGER NOT NULL REFERENCES Reporting_District(rpt_dist_no), 
   area_id INTEGER NOT NULL REFERENCES Area(area_id),
   location_id INTEGER REFERENCES Crime_Location(location_id),
   mocodes VARCHAR(50),
   weapon_cd INTEGER REFERENCES Weapon(weapon_cd),
-  crime_code_crm_cd INTEGER NOT NULL,
-  crime_code_crm_cd_2 INTEGER,
-  crime_code_crm_cd_3 INTEGER,
-  crime_code_crm_cd_4 INTEGER,
-  FOREIGN KEY (crime_code_crm_cd, crime_code_crm_cd_2, crime_code_crm_cd_3, crime_code_crm_cd_4) REFERENCES Crime_code (crm_cd, crm_cd_2, crm_cd_3, crm_cd_4)
+  crm_cd INTEGER NOT NULL REFERENCES Crime_code(crm_cd_id),
+  crm_cd_2 INTEGER REFERENCES Crime_code(crm_cd_id),
+  crm_cd_3 INTEGER REFERENCES Crime_code(crm_cd_id),
+  crm_cd_4 INTEGER REFERENCES Crime_code(crm_cd_id)
 );
-
+--------------------------------------
 CREATE TABLE IF NOT EXISTS Victim (
     vict_id SERIAL,
     dr_no INTEGER NOT NULL,

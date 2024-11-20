@@ -5,10 +5,11 @@ from datetime import datetime
 
 # Replace with your actual details
 DB_HOST = 'localhost'
-DB_NAME = 'LA-Crimes'
+DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112_10k.csv'
+sql_commands = 'create_tables.sql'
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
@@ -19,10 +20,23 @@ conn = psycopg2.connect(
 )
 cursor = conn.cursor()
 
+# Drop all tables in the public schema
+drop_all_tables_query = """
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+END $$;
+"""
+
+cursor.execute(drop_all_tables_query)
+conn.commit()
+
 # Load the CSV file into a pandas DataFrame
 df = pd.read_csv(CSV_FILE_PATH)
-print(df.head())
-# exit()
 
 print("Df size: ", df.shape)
 print("Df columns: ", df.columns)
@@ -33,9 +47,8 @@ print("Df isnull: ", df.isnull().sum())
 try:
     # Connect to PostgreSQL
     cur = cursor
-
     # Read and execute SQL file
-    with open(sql_file_path, 'r') as f:
+    with open(sql_commands, 'r') as f:
         sql_commands = f.read()
         cur.execute(sql_commands)
         conn.commit()
@@ -48,6 +61,26 @@ try:
 
 except Exception as e:
     print(f"An error occurred: {e}")
+    
+
+# Query to fetch tables and their columns
+query = """
+SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_name, ordinal_position;
+"""
+
+cursor.execute(query)
+
+# Print tables and columns
+current_table = None
+for table_name, column_name, data_type in cursor.fetchall():
+    if table_name != current_table:
+        print(f"\nTable: {table_name}")
+        current_table = table_name
+    print(f"  Column: {column_name} ({data_type})")
+
     
 print("Tables created successfully.")
 
@@ -70,14 +103,12 @@ print("ok for preprocessing date")
 df['DATE OCC'] = df['DATE OCC'].apply(parse_date)
 df['TIME OCC'] = df['TIME OCC'].apply(parse_time)
 
-# Set the schema
-schema = 'la_crimes'
 
 # Insert data into the 'area' table
 area_df = df[['AREA', 'AREA NAME']].drop_duplicates().rename(columns={'AREA': 'area_id', 'AREA NAME': 'area_name'})
 area_records = area_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.area (area_id, area_name)
+    INSERT INTO Area (area_id, area_name)
     VALUES (%(area_id)s, %(area_name)s)
     ON CONFLICT (area_id) DO NOTHING
 """, area_records)
@@ -87,9 +118,8 @@ print('ok for area!')
 status_df = df[['Status', 'Status Desc']].drop_duplicates().rename(columns={'Status': 'status', 'Status Desc': 'status_desc'})
 status_records = status_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.status (status, status_desc)
+    INSERT INTO Status (status_code, status_desc)
     VALUES (%(status)s, %(status_desc)s)
-    ON CONFLICT (status) DO NOTHING
 """, status_records)
 print('ok for status!')
 
@@ -98,7 +128,7 @@ premises_df = df[['Premis Cd', 'Premis Desc']].drop_duplicates().rename(columns=
 premises_df['premis_cd'] = premises_df['premis_cd'].fillna(-1).astype(int)
 premises_records = premises_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.premises (premis_cd, premis_desc)
+    INSERT INTO Premises (premis_cd, premis_desc)
     VALUES (%(premis_cd)s, %(premis_desc)s)
     ON CONFLICT (premis_cd) DO NOTHING
 """, premises_records)
@@ -106,48 +136,65 @@ print('ok for premises!')
 
 # Insert data into the 'weapon' table
 weapon_df = df[['Weapon Used Cd', 'Weapon Desc']].dropna(subset=['Weapon Used Cd']).drop_duplicates().rename(
-    columns={'Weapon Used Cd': 'weapon_used_cd', 'Weapon Desc': 'weapon_desc'}
+    columns={'Weapon Used Cd': 'weapon_cd', 'Weapon Desc': 'weapon_desc'}
 )
-weapon_df['weapon_used_cd'] = weapon_df['weapon_used_cd'].astype(int)
+weapon_df['weapon_cd'] = weapon_df['weapon_cd'].astype(int)
 weapon_records = weapon_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.weapon (weapon_used_cd, weapon_desc)
-    VALUES (%(weapon_used_cd)s, %(weapon_desc)s)
-    ON CONFLICT (weapon_used_cd) DO NOTHING
+    INSERT INTO Weapon (weapon_cd, weapon_desc)
+    VALUES (%(weapon_cd)s, %(weapon_desc)s)
+    ON CONFLICT (weapon_cd) DO NOTHING
 """, weapon_records)
 print('ok for weapon!')
 
 # Insert data into the 'crime_type' table
-crime_type_df = df[['Crm Cd', 'Crm Cd Desc', 'Crm Cd 2', 'Crm Cd 3', 'Crm Cd 4']].drop_duplicates().rename(
+crime_type_df = df[['Crm Cd', 'Crm Cd Desc']].drop_duplicates().rename(
     columns={
         'Crm Cd': 'crm_cd',
-        'Crm Cd Desc': 'crm_cd_desc',
-        'Crm Cd 2': 'crm_cd_2',
-        'Crm Cd 3': 'crm_cd_3',
-        'Crm Cd 4': 'crm_cd_4'
+        'Crm Cd Desc': 'crm_cd_desc'
     }
 )
 # Convert data types and fill NaN with -1
 crime_type_df['crm_cd'] = crime_type_df['crm_cd'].astype(int)
-crime_type_df['crm_cd_2'] = crime_type_df['crm_cd_2'].fillna(-1).astype(int)
-crime_type_df['crm_cd_3'] = crime_type_df['crm_cd_3'].fillna(-1).astype(int)
-crime_type_df['crm_cd_4'] = crime_type_df['crm_cd_4'].fillna(-1).astype(int)
+crime_type_df['crm_cd_desc'] = crime_type_df['crm_cd_desc'].fillna('').astype(str)
+
 crime_type_records = crime_type_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.crime_type (crm_cd, crm_cd_desc, crm_cd_2, crm_cd_3, crm_cd_4)
-    VALUES (%(crm_cd)s, %(crm_cd_desc)s, %(crm_cd_2)s, %(crm_cd_3)s, %(crm_cd_4)s)
-    ON CONFLICT (crm_cd, crm_cd_2, crm_cd_3, crm_cd_4) DO NOTHING
+    INSERT INTO Crime_code (crm_cd, crm_cd_desc)
+    VALUES (%(crm_cd)s, %(crm_cd_desc)s)
+    ON CONFLICT (crm_cd) DO NOTHING
 """, crime_type_records)
+
+# Insert unique values of crm_cd_1, crm_cd_2, crm_cd_3, and crm_cd_4 with empty crime_cd_desc
+unique_crm_cd = pd.concat([
+    df['Crm Cd'],
+    df['Crm Cd 2'],
+    df['Crm Cd 3'],
+    df['Crm Cd 4']
+]).dropna().unique()
+
+unique_crm_cd_df = pd.DataFrame({
+    'crm_cd': unique_crm_cd,
+    'crm_cd_desc': [''] * len(unique_crm_cd)  #! empty string , set on crm_cd_2/3/4
+})
+
+unique_crm_cd_records = unique_crm_cd_df.to_dict('records')
+execute_batch(cursor, f"""
+    INSERT INTO Crime_code (crm_cd, crm_cd_desc)
+    VALUES (%(crm_cd)s, %(crm_cd_desc)s)
+    ON CONFLICT (crm_cd) DO NOTHING
+""", unique_crm_cd_records)
+
 print('ok for crime_type!')
 
 # Insert data into the 'reporting_district' table
 reporting_district_df = df[['Rpt Dist No', 'AREA']].drop_duplicates().rename(
-    columns={'Rpt Dist No': 'rpt_dist_no', 'AREA': 'area_area_id'}
+    columns={'Rpt Dist No': 'rpt_dist_no', 'AREA': 'area_id'}
 )
 reporting_district_records = reporting_district_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.reporting_district (rpt_dist_no, area_area_id)
-    VALUES (%(rpt_dist_no)s, %(area_area_id)s)
+    INSERT INTO Reporting_district (rpt_dist_no, area_id)
+    VALUES (%(rpt_dist_no)s, %(area_id)s)
     ON CONFLICT (rpt_dist_no) DO NOTHING
 """, reporting_district_records)
 print('ok for reporting_district!')
@@ -158,23 +205,32 @@ location_df = df[['LOCATION', 'LAT', 'LON', 'Cross Street']].drop_duplicates().r
 )
 location_records = location_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.crime_location (location, lat, lon, cross_street)
+    INSERT INTO Crime_location (location, lat, lon, cross_street)
     VALUES (%(location)s, %(lat)s, %(lon)s, %(cross_street)s)
-    ON CONFLICT (location) DO NOTHING
 """, location_records)
 print('ok for crime_location!')
-
-# Insert data into 'crime_chronicle' table
-chronicle_df = df[['DATE OCC', 'TIME OCC']].drop_duplicates().rename(
+# Insert data into 'timestamp' table
+timestamp_df = df[['DATE OCC', 'TIME OCC']].drop_duplicates().rename(
     columns={'DATE OCC': 'date_occ', 'TIME OCC': 'time_occ'}
 )
-chronicle_records = chronicle_df.to_dict('records')
+timestamp_records = timestamp_df.to_dict('records')
+
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.crime_chronicle (date_occ, time_occ)
+    INSERT INTO Timestamp (date_occ, time_occ)
     VALUES (%(date_occ)s, %(time_occ)s)
-    ON CONFLICT (date_occ, time_occ) DO NOTHING
-""", chronicle_records)
-print('ok for crime_chronicle!')
+    ON CONFLICT DO NOTHING
+""", timestamp_records)
+
+print('ok for timestamp!')
+
+
+
+# Retrieve all timestamp_id mappings for future use
+cursor.execute("SELECT timestamp_id, date_occ, time_occ FROM Timestamp")
+timestamp_mappings = cursor.fetchall()
+
+# Create a mapping dictionary for date_occ and time_occ to timestamp_id for future use
+timestamp_id_map = {(row[1], row[2]): row[0] for row in timestamp_mappings}
 
 # Prepare and insert data into the 'crime_report' table
 crime_report_df = df[['DR_NO',
@@ -184,71 +240,140 @@ crime_report_df = df[['DR_NO',
                       'Status',
                       'Premis Cd',
                       'Rpt Dist No',
+                      'Mocodes',
+                      'Weapon Used Cd',
                       'AREA',
                       'LOCATION',
-                      'Mocodes',
+                      'LAT',
+                      'LON',
+                      'Cross Street',
                       'Crm Cd',
                       'Crm Cd 2',
                       'Crm Cd 3',
                       'Crm Cd 4']].rename(columns={
                           'DR_NO': 'dr_no',
                           'Date Rptd': 'date_rptd',
-                          'DATE OCC': 'crime_chronicle_date_occ',
-                          'TIME OCC': 'crime_chronicle_time_occ',
-                          'Status': 'status_status',
-                          'Premis Cd': 'premises_premis_cd',
-                          'Rpt Dist No': 'reporting_district_rpt_dist_no',
-                          'AREA': 'area_area_id',
-                          'LOCATION': 'crime_location_location',
+                          'DATE OCC': 'date_occ',
+                          'TIME OCC': 'time_occ',
+                          'Status': 'status_code',
+                          'Premis Cd': 'premis_cd',
+                          'Rpt Dist No': 'rpt_dist_no',
                           'Mocodes': 'mocodes',
-                          'Crm Cd': 'crime_type_crm_cd',
-                          'Crm Cd 2': 'crime_type_crm_cd_2',
-                          'Crm Cd 3': 'crime_type_crm_cd_3',
-                          'Crm Cd 4': 'crime_type_crm_cd_4'
+                          'Weapon Used Cd': 'weapon_cd',
+                          'AREA': 'area_id',
+                          'LOCATION': 'location',
+                          'LAT': 'lat',
+                          'LON': 'lon',
+                          'Cross Street': 'cross_street',
+                          'Crm Cd': 'crm_cd',
+                          'Crm Cd 2': 'crm_cd_2',
+                          'Crm Cd 3': 'crm_cd_3',
+                          'Crm Cd 4': 'crm_cd_4'
                       })
+
+print("crime_report_df: ", crime_report_df.head(3))
+exit()
+
 # Fill NaN values and convert types
-crime_report_df['premises_premis_cd'] = crime_report_df['premises_premis_cd'].fillna(-1).astype(int)
-crime_report_df['crime_type_crm_cd'] = crime_report_df['crime_type_crm_cd'].astype(int)
-crime_report_df['crime_type_crm_cd_2'] = crime_report_df['crime_type_crm_cd_2'].fillna(-1).astype(int)
-crime_report_df['crime_type_crm_cd_3'] = crime_report_df['crime_type_crm_cd_3'].fillna(-1).astype(int)
-crime_report_df['crime_type_crm_cd_4'] = crime_report_df['crime_type_crm_cd_4'].fillna(-1).astype(int)
+crime_report_df['premis_cd'] = crime_report_df['premis_cd'].fillna(-1).astype(int)
+crime_report_df['crm_cd'] = crime_report_df['crm_cd'].astype(int)
+crime_report_df['crm_cd_2'] = crime_report_df['crm_cd_2'].fillna(-1).astype(int)
+crime_report_df['crm_cd_3'] = crime_report_df['crm_cd_3'].fillna(-1).astype(int)
+crime_report_df['crm_cd_4'] = crime_report_df['crm_cd_4'].fillna(-1).astype(int)
 crime_report_df['mocodes'] = crime_report_df['mocodes'].fillna('').astype(str)
+
+
+# Add timestamp_id to the DataFrame using the mapping dictionary
+crime_report_df['timestamp_id'] = crime_report_df.apply(
+    lambda row: timestamp_id_map.get((row['date_occ'], row['time_occ'])),
+    axis=1
+)
+
+print("crime_report_df: ", crime_report_df.head())
+
+
+for i in range(0, 3):
+    print("i is ", i)
+    print("Crime report df dr_no: ", crime_report_df['dr_no'][i])
+    print("Crime report df date_rptd: ", crime_report_df['date_rptd'][i])
+    print("Crime report df timestamp_id: ", crime_report_df['timestamp_id'][i])
+    print("Crime report df crm_cd: ", crime_report_df['crm_cd'][i])
+    
+print("crime_report_df: ", crime_report_df.head(3))
+
+
+
+# Drop columns no longer needed
+crime_report_df = crime_report_df.drop(columns=['date_occ', 'time_occ'])
+#Same for location_id
+cursor.execute("SELECT location_id, location, lat, lon, cross_street FROM Crime_Location")
+crime_location_mappings = cursor.fetchall()
+# Create a mapping dictionary for (location, lat, lon, cross_street) to location_id
+crime_location_id_map = {
+    (row[1], row[2], row[3], row[4]): row[0]
+    for row in crime_location_mappings
+}
+
+# Add location_id to the DataFrame using the mapping dictionary
+crime_report_df['location_id'] = crime_report_df.apply(
+    lambda row: crime_location_id_map.get(
+        (row['location'], row['lat'], row['lon'], row.get('cross_street'))
+    ),
+    axis=1
+)
+
+crime_report_df = crime_report_df.drop(columns=['location', 'lat', 'lon', 'cross_street'])
+
+
+for i in range(0, 3):
+    print("i is ", i)
+    print("Crime report df dr_no: ", crime_report_df['dr_no'][i])
+    print("Crime report df date_rptd: ", crime_report_df['date_rptd'][i])
+    print("Crime report df timestamp_id: ", crime_report_df['timestamp_id'][i])
+    print("Crime report df crm_cd: ", crime_report_df['crm_cd'][i])
+    print("Crime report location_id: ", crime_report_df['location_id'][i])
+
+print("crime_report_df: ", crime_report_df.head())
+
 crime_report_records = crime_report_df.to_dict('records')
-execute_batch(cursor, f"""
-    INSERT INTO {schema}.crime_report (
+execute_batch(cursor, """
+    INSERT INTO Crime_report (
         dr_no,
         date_rptd,
-        crime_chronicle_date_occ,
-        crime_chronicle_time_occ,
-        status_status,
-        premises_premis_cd,
-        reporting_district_rpt_dist_no,
-        area_area_id,
-        crime_location_location,
+        timestamp_id,
+        status_code,
+        premis_cd,
+        rpt_dist_no,
+        area_id,
+        location_id,
         mocodes,
-        crime_type_crm_cd,
-        crime_type_crm_cd_2,
-        crime_type_crm_cd_3,
-        crime_type_crm_cd_4
+        weapon_cd,
+        crm_cd,
+        crm_cd_2,
+        crm_cd_3,
+        crm_cd_4
     )
     VALUES (
         %(dr_no)s,
         %(date_rptd)s,
-        %(crime_chronicle_date_occ)s,
-        %(crime_chronicle_time_occ)s,
-        %(status_status)s,
-        %(premises_premis_cd)s,
-        %(reporting_district_rpt_dist_no)s,
-        %(area_area_id)s,
-        %(crime_location_location)s,
+        %(timestamp_id)s,
+        %(status_code)s,
+        %(premis_cd)s,
+        %(rpt_dist_no)s,
+        %(area_id)s,
+        %(location_id)s,
         %(mocodes)s,
-        %(crime_type_crm_cd)s,
-        %(crime_type_crm_cd_2)s,
-        %(crime_type_crm_cd_3)s,
-        %(crime_type_crm_cd_4)s
+        %(weapon_cd)s,
+        %(crm_cd)s,
+        %(crm_cd_2)s,
+        %(crm_cd_3)s,
+        %(crm_cd_4)s
     )
-    ON CONFLICT (dr_no) DO NOTHING
+    ON CONFLICT DO NOTHING
 """, crime_report_records)
+
+
+
 print('ok for crime_report!')
 
 # Insert data into the 'victim' table
@@ -257,7 +382,7 @@ victim_df = df[['DR_NO', 'Vict Age', 'Vict Sex', 'Vict Descent']].drop_duplicate
 )
 victim_records = victim_df.to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.victim (dr_no, vict_age, vict_sex, vict_descent)
+    INSERT INTO Victim (dr_no, vict_age, vict_sex, vict_descent)
     VALUES (%(dr_no)s, %(vict_age)s, %(vict_sex)s, %(vict_descent)s)
     ON CONFLICT DO NOTHING
 """, victim_records)
@@ -270,7 +395,7 @@ weapons_used_df = df[['DR_NO', 'Weapon Used Cd']].dropna(subset=['Weapon Used Cd
 weapons_used_df['weapon_weapon_used_cd'] = weapons_used_df['weapon_weapon_used_cd'].astype(int)
 weapons_used_records = weapons_used_df.drop_duplicates().to_dict('records')
 execute_batch(cursor, f"""
-    INSERT INTO {schema}.crime_report_has_weapon (crime_report_dr_no, weapon_weapon_used_cd)
+    INSERT INTO Crime_report_has_weapon (crime_report_dr_no, weapon_weapon_used_cd)
     VALUES (%(crime_report_dr_no)s, %(weapon_weapon_used_cd)s)
     ON CONFLICT DO NOTHING
 """, weapons_used_records)
