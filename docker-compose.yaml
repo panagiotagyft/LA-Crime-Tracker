@@ -1,44 +1,35 @@
-version: "3.8"
+version: '3.9'
 
 services:
   db:
-    image: postgres
-    restart: always
-    ports:
-      - 5432:5432
+    image: postgres:17
+    container_name: postgres_db
     environment:
-      # POSTGRES_SERVER: db # Set PostgreSQL server
-      POSTGRES_USER: postgres # Set PostgreSQL user
-      POSTGRES_PASSWORD: example # Set PostgreSQL password
-      POSTGRES_DB: LA_Crimes # Set PostgreSQL database
-      PGDATA: /var/lib/postgresql/data/
-    volumes:
-      - pgdata:/var/lib/postgresql/data/
-    # network_mode: "host"
-    networks:
-      - app-network
-
-  adminer:
-    image: adminer
-    restart: always
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123098giota
+      POSTGRES_DB: la_crimes
     ports:
-      - 8080:8080
-    networks:
-      - app-network
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-    # network_mode: "host"
-    #   - app-network
-
-  python_app:
+  web:
     build:
-      context: . # Use the current directory to build
-      dockerfile: Dockerfile # Specify the Dockerfile for the Python script
+      context: .
+      dockerfile: Dockerfile
+    container_name: la_crimes_django_app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - db
-    networks:
-      - app-network
+    environment:
+      - DEBUG=True
+      - DB_HOST=db
+      - DB_NAME=la_crimes
+      - DB_USER=postgres
+      - DB_PASSWORD=123098giota
 
 volumes:
   pgdata:
-networks:
-  app-network:
