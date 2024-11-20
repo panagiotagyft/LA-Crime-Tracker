@@ -1,17 +1,20 @@
-# Dockerfile for Python script
-FROM python:3.9-slim
+# Use an official Python image
+FROM python:3.11-slim
 
-# Install psycopg2 dependencies
-RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
-# Install psycopg2
-RUN pip install psycopg2 django
-
-RUN pip freeze  
 # Set the working directory
 WORKDIR /app
 
-# Copy the Python script into the container
-COPY main.py .
+# Copy the requirements.txt file
+COPY requirements.txt .
 
-# Run the Python script
-CMD ["python", "main.py"]
+# Install the required Python packages
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project into the container
+COPY . .
+
+# Expose port 8000 for the Django development server
+EXPOSE 8000
+
+# Command to start the Django server
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
