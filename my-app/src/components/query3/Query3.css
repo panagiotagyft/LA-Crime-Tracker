@@ -1,0 +1,105 @@
+.query3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.query3Box {
+    width: 40%;
+    height: 40%;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.744);
+    /* Semi-transparent background */
+    border-radius: 15px;
+    /* Rounded corners */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Shadow for depth */
+    backdrop-filter: blur(10px);
+    /* Blur effect on the background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Subtle border */
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding-top: 50px;
+}
+
+.query3Up,
+.query3Down,
+.query3Middle {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.query3Desc {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: -20px;
+    color: #455a64;
+}
+
+.query3Line {
+    width: 80%;
+    height: 1px;
+    background-color: #263238;
+    margin: 10px 0;
+    border: none;
+}
+
+.query3Form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: -10px;
+    gap: 40px;
+}
+
+.selectDate {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.selectDate label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #455a64;
+}
+
+.dateInput {
+    height: 40px;
+    width: 150px;
+    border-radius: 10px;
+    border: none;
+    background-color: white;
+    color: #455a64;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.query3SubmitButton {
+    height: 30px;
+    width: 100px;
+    border-radius: 10px;
+    border: none;
+    background-color: #455a64;
+    color: white;
+    font-size: 18px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.query3SubmitButton:hover {
+    background-color: #546e7a;
+}
+
+.query3SubmitButton:active {
+    transform: translateY(0.1em);
+}

@@ -332,7 +332,7 @@ victim_df = df[['DR_NO', 'Vict Age', 'Vict Sex', 'Vict Descent']].rename(
     columns={'DR_NO': 'dr_no', 'Vict Age': 'vict_age', 'Vict Sex': 'vict_sex', 'Vict Descent': 'vict_descent'}
 )
 victim_records = victim_df.to_dict('records')
-# print(victim_records)
+
 for record in victim_records:
     cursor.execute("""
         INSERT INTO Victim (
