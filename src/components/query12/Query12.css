@@ -1,0 +1,111 @@
+.query12 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.query12Box {
+    width: 40%;
+    height: 40%;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.744);
+    /* Semi-transparent background */
+    border-radius: 15px;
+    /* Rounded corners */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Shadow for depth */
+    backdrop-filter: blur(10px);
+    /* Blur effect on the background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Subtle border */
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding-top: 50px;
+}
+
+.query12Up,
+.query12Down,
+.query12Middle {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.query12Desc {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: -20px;
+    color: #455a64;
+}
+
+.query12Line {
+    width: 80%;
+    /* Full width of the container */
+    height: 1px;
+    /* Thin line */
+    background-color: #263238;
+    /* margin: 10px 0; */
+    /* Add spacing above and below the line */
+    border: none;
+}
+
+.query12Form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: -10px;
+    gap: 40px;
+}
+
+.startTime,
+.endTime {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.endTime,
+.startTime label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #455a64;
+}
+
+.startTimeInput,
+.endTimeInput {
+    height: 40px;
+    width: 150px;
+    border-radius: 10px;
+    border: none;
+    background-color: white;
+    color: #455a64;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.query12SubmitButton {
+    height: 30px;
+    width: 100px;
+    border-radius: 10px;
+    border: none;
+    background-color: #455a64;
+    color: white;
+    font-size: 18px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.query12SubmitButton:hover {
+    background-color: #546e7a;
+}
+
+.query12SubmitButton:active {
+    transform: translateY(0.1em);
+}
