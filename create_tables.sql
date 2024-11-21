@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Reporting_District (
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS Crime_code (
   crm_cd_id SERIAL PRIMARY KEY,
-  crm_cd INTEGER NOT NULL,
+  crm_cd INTEGER,
   crm_cd_desc VARCHAR(100)
 );
 -- ------------------------------------------
@@ -59,16 +59,16 @@ CREATE TABLE IF NOT EXISTS Crime_report (
   weapon_cd INTEGER REFERENCES Weapon(weapon_cd),
   crm_cd INTEGER NOT NULL REFERENCES Crime_code(crm_cd_id),
   crm_cd_2 INTEGER REFERENCES Crime_code(crm_cd_id),
-  crm_cd_3 INTEGER REFERENCES Crime_code(crm_cd_id),
-  crm_cd_4 INTEGER REFERENCES Crime_code(crm_cd_id)
+  crm_cd_3 BIGINT REFERENCES Crime_code(crm_cd_id),
+  crm_cd_4 BIGINT REFERENCES Crime_code(crm_cd_id)
 );
 --------------------------------------
 CREATE TABLE IF NOT EXISTS Victim (
     vict_id SERIAL,
     dr_no INTEGER NOT NULL,
     vict_age INTEGER NOT NULL,
-    vict_sex CHAR(1) DEFAULT NULL,
-    vict_descent CHAR(2) DEFAULT NULL,
+    vict_sex VARCHAR(10) DEFAULT NULL,
+    vict_descent VARCHAR(10) DEFAULT NULL,
     PRIMARY KEY (vict_id, dr_no), -- Composite primary key
     FOREIGN KEY (dr_no) REFERENCES Crime_report(dr_no)
 );
