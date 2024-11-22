@@ -7,27 +7,25 @@ export const AuthContext = createContext(null);
 export const AuthContextProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(() => {
         const user = Cookies.get('user') ? JSON.parse(Cookies.get('user')) : null;
-        if (user) {
-            user.is_admin = Cookies.get('is_admin') === 'true';
-        }
         return user;
     });
 
     const login = async (inputs) => {
         try {
-            const response = await axios.post("https://127.0.0.1/api/token/", inputs, {
+            const response = await axios.post("http://127.0.0.1:8000/api/users/login/", inputs, {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
             });
             if (response.status === 200 && response.data) {
-                const user = response.data;
+                const token = response.data.token;
+                const user = { username: inputs.username };
                 setCurrentUser(user);
                 Cookies.set('user', JSON.stringify(user));
-                Cookies.set('is_admin', user.user.is_admin);
-                return user.user;
+                Cookies.set('token', token); // Αποθήκευση του token
+                return user;
             } else {
-                throw new Error("Login Failed");
+                throw new Error("Login failed");
             }
         } catch (err) {
             console.error("Login failed", err);
@@ -37,7 +35,8 @@ export const AuthContextProvider = ({ children }) => {
 
     const logout = () => {
         Cookies.remove('user');
-        Cookies.remove('is_admin');
+        Cookies.remove('token');
+        setCurrentUser(null);
     };
 
     useEffect(() => {
