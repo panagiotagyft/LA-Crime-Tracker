@@ -31,7 +31,7 @@ services:
 
   python_app:
     build:
-      context: . # Use the current directory to build
+      context: ./crimes_tracker
       dockerfile: Dockerfile # Specify the Dockerfile for the Python script
     depends_on:
       - db
