@@ -37,16 +37,20 @@ export default function Register() {
                 },
             });
             redirect("/");
-        } catch (error) {
-            console.error("Error details:", error);
+        }  catch (error) {
             if (error.response) {
                 const errorData = error.response.data;
                 let errorMessage = "";
-                for (const key in errorData) {
-                    if (errorData.hasOwnProperty(key)) {
-                        errorMessage += `${key}: ${errorData[key].join(", ")} `;
+
+                Object.keys(errorData).forEach((key) => {
+                    const value = errorData[key];
+                    if (Array.isArray(value)) {
+                        errorMessage += `${key}: ${value.join(", ")}\n`;
+                    } else {
+                        errorMessage += `${key}: ${value}\n`;
                     }
-                }
+                });
+
                 setError(errorMessage.trim());
             } else {
                 setError("An unexpected error occurred. Please try again later.");
