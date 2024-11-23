@@ -8,6 +8,12 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+    
+    # def create_user(self, username, email, password, **extra_fields):
+    #     self.username = username
+    #     self.email = email
+    #     self.password = password
+    #     self.save()
 
 
 class Area(models.Model):
