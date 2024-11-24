@@ -75,7 +75,7 @@ export default function Updates() {
                         name="DateRptd"
                         value={formData.DateRptd}
                         onChange={handleChange}
-                        type="text"
+                        type="date"
                         />
                     </div>
                     </div>
@@ -87,7 +87,7 @@ export default function Updates() {
                         name="DateOcc"
                         value={formData.DateOcc}
                         onChange={handleChange}
-                        type="text"
+                        type="date"
                         />
                     </div>
                     <div className="formField">
@@ -97,7 +97,7 @@ export default function Updates() {
                         name="TimeOcc"
                         value={formData.TimeOcc}
                         onChange={handleChange}
-                        type="text"
+                        type="time"
                         />
                     </div>
                     </div>
@@ -163,7 +163,8 @@ export default function Updates() {
                         name="Latitude"
                         value={formData.Latitude}
                         onChange={handleChange}
-                        type="text"
+                        type="number"
+                        step="0.000001"
                         />
                     </div>
                     <div className="formField">
@@ -173,7 +174,8 @@ export default function Updates() {
                         name="Longitude"
                         value={formData.Longitude}
                         onChange={handleChange}
-                        type="text"
+                        type="number"
+                        step="0.000001"
                         />
                     </div>
                     <div className="formField">
