@@ -106,7 +106,39 @@ class GetCodeDescriptionView(APIView):
             return Response({"description": None}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+from datetime import datetime
+
+class GenerateDRNOView(APIView):
+    def get(self, request):
+        area_id = request.query_params.get('area_id', None)
+        date_rptd = request.query_params.get('date_rptd', None)
         
+        if not area_id or not date_rptd:
+            return Response({"error": "Area ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            year2digit = date_rptd.year
+            print(year2digit)
+            print(area_id)
+            with connection.cursor() as cursor:
+                # Βρίσκουμε τον επόμενο διαθέσιμο αριθμό για το συγκεκριμένο Area ID και date_rptd
+                query = """
+                    SELECT COUNT(*) + 1 
+                    FROM Crime_report 
+                    WHERE area_id = %s AND YEAR(date_rptd) = %s;
+                """
+                cursor.execute(query, [area_id, year2digit])
+                next_record_number = cursor.fetchone()[0]
+
+            # Δημιουργούμε το DR_NO
+            dr_no = f"{year2digit:02}{int(area_id):02}{next_record_number:05}"
+            return Response({"dr_no": dr_no}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class SaveNewCodeView(APIView):
     def post(self, request):
         code_type = request.data.get('type', None)

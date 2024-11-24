@@ -105,6 +105,32 @@ export default function Insert() {
         }
     };
 
+    const generateDRNO = (areaCode, dateRptd) => {
+        if (areaCode && dateRptd) {
+            axios
+                .get("http://127.0.0.1:8000/api/db_manager/generate-drno/", {
+                    params: { area_id: areaCode, date_rptd: dateRptd },
+                })
+                .then((response) => {
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        DR_NO: response.data.DR_NO, 
+                    }));
+                })
+                .catch((error) => {
+                    console.error("Error generating DR_NO:", error);
+                });
+        } else {
+            console.warn("AreaCode and DateRptd are required to generate DR_NO.");
+            setFormData((prevData) => ({
+                ...prevData,
+                DR_NO: "",
+            }));
+        }
+    };
+
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
@@ -133,22 +159,20 @@ export default function Insert() {
                     <div className="formRow">
                     <div className="formField">
                         <label htmlFor="DR_NO">DR_NO</label>
-                        <input
-                        id="DR_NO"
-                        name="DR_NO"
-                        value={formData.DR_NO}
-                        onChange={handleChange}
-                        type="text"
-                        />
+                        <input id="DR_NO" name="DR_NO" value={formData.DR_NO} readOnly type="text"/>
                     </div>
                     <div className="formField">
                         <label htmlFor="DateRptd">Date Rptd</label>
                         <input
-                        id="DateRptd"
-                        name="DateRptd"
-                        value={formData.DateRptd}
-                        onChange={handleChange}
-                        type="date"
+                            id="DateRptd"
+                            name="DateRptd"
+                            value={formData.DateRptd}
+                            onChange={(e) => {
+                                const dateRptd = e.target.value;
+                                handleChange(e);
+                                if (formData.AreaCode) { generateDRNO(formData.AreaCode, dateRptd); } 
+                            }}
+                            type="date"
                         />
                     </div>
                     </div>
@@ -183,7 +207,11 @@ export default function Insert() {
                             id="AreaCode"
                             name="AreaCode"
                             value={formData.AreaCode}
-                            onChange={(e) => handleCodeChange(e, "Area")}
+                            onChange={(e) => {
+                                const areaCode = e.target.value;
+                                handleCodeChange(e, "Area");
+                                if (formData.DateRptd) {generateDRNO(areaCode, formData.DateRptd);}
+                            }}
                         >
                         <option value="">Select Area Code</option>
                         {options.area_codes.map((code, index) => (
@@ -196,8 +224,11 @@ export default function Insert() {
                             type="text"
                             name="CustomAreaCode"
                             placeholder="Enter new Area Code"
-                            value={formData.AreaDesc}
-                            onChange={handleChange}
+                            value={formData.AreaCode}
+                            onChange={(e) => {
+                                handleChange(e);
+                                generateDRNO();
+                            }}
                         />
                         )}
                     </div>
@@ -415,7 +446,7 @@ export default function Insert() {
                             type="text"
                             name="CustomWeaponUsedCd"
                             placeholder="Enter new Weapon Used Cd"
-                            value={formData.WeaponDesc}
+                            value={formData.WeaponUsedCd}
                             onChange={handleChange}
                         />
                         )}
