@@ -65,10 +65,29 @@ export default function Insert() {
     const handleCodeChange = (e, type) => {
         const codeValue = e.target.value;
 
+        const codeKeyMap = {
+            "Area": "AreaCode",
+            "Crime_code": "CrmCd",
+            "Premises": "PremisCd",
+            "Weapon": "WeaponUsedCd",
+            "Status": "Status",
+        };
+
+        const descKeyMap = {
+            "Area": "AreaDesc",
+            "Crime_code": "Crime_codeDesc",
+            "Premises": "PremisesDesc",
+            "Weapon": "WeaponDesc",
+            "Status": "StatusDesc",
+        };
+
+        const codeKey = codeKeyMap[type];
+        const descKey = descKeyMap[type];
+
         setFormData((prevData) => ({
             ...prevData,
-            [type]: codeValue,
-            [`${type}Desc`]: "", // Reset description
+            [codeKey]: codeValue,
+            [descKey]: "", // Reset description
         }));
 
         if (codeValue) {
@@ -78,7 +97,7 @@ export default function Insert() {
             .then((response) => {
                 setFormData((prevData) => ({
                     ...prevData,
-                    [`${type}Desc`]: response.data.description,
+                    [descKey]: response.data.description,
                 }));
                 setEditableFields((prevFields) => ({
                     ...prevFields,
@@ -89,7 +108,7 @@ export default function Insert() {
                 if (error.response && error.response.status === 404) {
                     setFormData((prevData) => ({
                         ...prevData,
-                        [`${type}Desc`]: "",
+                        [descKey]: "",
                     }));
                     setEditableFields((prevFields) => ({
                         ...prevFields,
@@ -106,20 +125,20 @@ export default function Insert() {
     };
 
     const generateDRNO = (areaCode, dateRptd) => {
+        
         if (areaCode && dateRptd) {
-            axios
-                .get("http://127.0.0.1:8000/api/db_manager/generate-drno/", {
-                    params: { area_id: areaCode, date_rptd: dateRptd },
-                })
-                .then((response) => {
-                    setFormData((prevData) => ({
-                        ...prevData,
-                        DR_NO: response.data.DR_NO, 
-                    }));
-                })
-                .catch((error) => {
-                    console.error("Error generating DR_NO:", error);
-                });
+            axios.get("http://127.0.0.1:8000/api/db_manager/generate-drno/", {
+                params: { area_id: areaCode, date_rptd: dateRptd },
+            })
+            .then((response) => {
+                setFormData((prevData) => ({
+                    ...prevData,
+                    DR_NO: response.data.dr_no, 
+                }));
+            })
+            .catch((error) => {
+                console.error("Error generating DR_NO:", error);
+            });
         } else {
             console.warn("AreaCode and DateRptd are required to generate DR_NO.");
             setFormData((prevData) => ({
@@ -128,8 +147,6 @@ export default function Insert() {
             }));
         }
     };
-
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;

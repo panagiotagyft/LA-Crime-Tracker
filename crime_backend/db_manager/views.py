@@ -83,8 +83,8 @@ class GetCodeDescriptionView(APIView):
     def get(self, request):
         table_name = request.query_params.get('type', None)
         code_value = request.query_params.get('code', None)
-        print(table_name)
-        print(code_value)
+        # print(table_name)
+        # print(code_value)
         if not table_name or not code_value:
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -100,7 +100,7 @@ class GetCodeDescriptionView(APIView):
                 cursor.execute(query, [code_value])
                 row = cursor.fetchone()
 
-            print(row)
+            # print(row)
             if row:
                 return Response({"description": row[0]}, status=status.HTTP_200_OK)
             return Response({"description": None}, status=status.HTTP_404_NOT_FOUND)
@@ -113,26 +113,30 @@ class GenerateDRNOView(APIView):
     def get(self, request):
         area_id = request.query_params.get('area_id', None)
         date_rptd = request.query_params.get('date_rptd', None)
-        
+        print(f"Received area_id: {area_id}, date_rptd: {date_rptd}")
+
         if not area_id or not date_rptd:
             return Response({"error": "Area ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            year2digit = date_rptd.year
-            print(year2digit)
-            print(area_id)
+            rptd_date = datetime.strptime(date_rptd, "%Y-%m-%d")
+            year = rptd_date.year 
+            print(year)
+            print(rptd_date)
             with connection.cursor() as cursor:
                 # Βρίσκουμε τον επόμενο διαθέσιμο αριθμό για το συγκεκριμένο Area ID και date_rptd
                 query = """
                     SELECT COUNT(*) + 1 
                     FROM Crime_report 
-                    WHERE area_id = %s AND YEAR(date_rptd) = %s;
+                    WHERE area_id = %s AND EXTRACT(YEAR FROM date_rptd) = %s;
                 """
-                cursor.execute(query, [area_id, year2digit])
+                cursor.execute(query, [area_id, year])
                 next_record_number = cursor.fetchone()[0]
-
+                print(next_record_number)
+            year = year % 100
             # Δημιουργούμε το DR_NO
-            dr_no = f"{year2digit:02}{int(area_id):02}{next_record_number:05}"
+            dr_no = f"{year:02}{int(area_id):02}{next_record_number:05}"
+            print(dr_no)
             return Response({"dr_no": dr_no}, status=status.HTTP_200_OK)
 
         except Exception as e:
