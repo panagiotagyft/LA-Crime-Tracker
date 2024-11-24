@@ -4,9 +4,9 @@ from psycopg2.extras import execute_batch
 from datetime import datetime
 
 # Replace with your actual details
-DB_HOST = 'localhost'
-DB_NAME = 'LA_Crimes'
-DB_USER = 'postgres'
+DB_HOST = '127.0.0.1'
+DB_NAME = 'crime_tracker'
+DB_USER = 'crime_user'
 DB_PASS = '123098giota'
 CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
 sql_commands = 'create_tables.sql'
