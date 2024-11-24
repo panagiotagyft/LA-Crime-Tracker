@@ -9,28 +9,30 @@ export default function Insert() {
 
     const handleLogout = () => {
         console.log('User logged out');
-        };
+    };
         
     const [formData, setFormData] = useState({
         DR_NO: "",
+        DateRptd: "",
+        DateOcc: "",
+        TimeOcc: "",
         AreaCode: "",
-        AreaName: "",
-        AreaNameCustom: "",
+        AreaDesc: "",
         PremisCd: "",
-        PremisDesc: "",
-        PremisDescCustom: "",
+        PremisesDesc: "",
         CrmCd: "",
-        CrmCdDesc: "",
-        CrmCdDescCustom: "",
-        PremisCd: "",
-        PremisDesc: "",
-        PremisDescCustom: "",
+        Crime_codeDesc: "",
+        CrmCd2: "",
+        CrmCd3: "",
+        CrmCd4: "",
         WeaponUsedCd: "",
         WeaponDesc: "",
-        WeaponDescCustom: "",
+        Location: "",
+        Latitude: "",
+        Longitude: "",
+        CrossStreet: "",
         Status: "",
         StatusDesc: "",
-        StatusDescCustom: "",
     });
 
     const [options, setOptions] = useState({
@@ -43,8 +45,8 @@ export default function Insert() {
 
     const [editableFields, setEditableFields] = useState({
         AreaDesc: false,
-        CrmCdDesc: false,
-        PremisDesc: false,
+        Crime_codeDesc: false,
+        PremisesDesc: false,
         WeaponDesc: false,
         StatusDesc: false,
     });
@@ -54,7 +56,6 @@ export default function Insert() {
         axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
         .then((response) => {
             setOptions(response.data);
-            console.log(response.data)
         })
         .catch((error) => {
             console.error("Error fetching dropdown options:", error);
@@ -63,44 +64,44 @@ export default function Insert() {
 
     const handleCodeChange = (e, type) => {
         const codeValue = e.target.value;
+
         setFormData((prevData) => ({
-        ...prevData,
-        [type]: codeValue,
-        [`${type}Desc`]: "", // Reset description
-        [`${type}DescCustom`]: "", // Reset custom description
+            ...prevData,
+            [type]: codeValue,
+            [`${type}Desc`]: "", // Reset description
         }));
 
         if (codeValue) {
-        axios.get("http://127.0.0.1:8000/api/db_manager/get-code-description/", {
-            params: { type, code: codeValue },
-        })
+            axios.get("http://127.0.0.1:8000/api/db_manager/get-code-description/", {
+                params: { type, code: codeValue },
+            })
             .then((response) => {
-            setFormData((prevData) => ({
-                ...prevData,
-                [`${type}Desc`]: response.data.description,
-            }));
+                setFormData((prevData) => ({
+                    ...prevData,
+                    [`${type}Desc`]: response.data.description,
+                }));
+                setEditableFields((prevFields) => ({
+                    ...prevFields,
+                    [`${type}Desc`]: false,
+                }));
+            })
+            .catch((error) => {
+                if (error.response && error.response.status === 404) {
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        [`${type}Desc`]: "",
+                    }));
+                    setEditableFields((prevFields) => ({
+                        ...prevFields,
+                        [`${type}Desc`]: true,
+                    }));
+                }
+            });
+        } else {
             setEditableFields((prevFields) => ({
                 ...prevFields,
                 [`${type}Desc`]: false,
             }));
-            })
-            .catch((error) => {
-            if (error.response && error.response.status === 404) {
-                setFormData((prevData) => ({
-                ...prevData,
-                [`${type}Desc`]: "",
-                }));
-                setEditableFields((prevFields) => ({
-                ...prevFields,
-                [`${type}Desc`]: true,
-                }));
-            }
-            });
-        } else {
-        setEditableFields((prevFields) => ({
-            ...prevFields,
-            [`${type}Desc`]: false,
-        }));
         }
     };
 
@@ -115,7 +116,7 @@ export default function Insert() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const finalData = { ...formData };
-        ["CrmCd", "PremisCd", "WeaponUsedCd", "Status"].forEach((type) => {
+        ["Area","CrmCd", "PremisCd", "WeaponUsedCd", "Status"].forEach((type) => {
         finalData[`${type}Desc`] = editableFields[`${type}Desc`]
             ? formData[`${type}DescCustom`]
             : formData[`${type}Desc`];
@@ -179,10 +180,10 @@ export default function Insert() {
                     <div className="formField">
                         <label htmlFor="AreaCode">Area Code</label>
                         <select
-                        id="AreaCode"
-                        name="AreaCode"
-                        value={formData.AreaCode}
-                        onChange={handleChange}
+                            id="AreaCode"
+                            name="AreaCode"
+                            value={formData.AreaCode}
+                            onChange={(e) => handleCodeChange(e, "Area")}
                         >
                         <option value="">Select Area Code</option>
                         {options.area_codes.map((code, index) => (
@@ -195,13 +196,12 @@ export default function Insert() {
                             type="text"
                             name="CustomAreaCode"
                             placeholder="Enter new Area Code"
-                            value={formData.CustomAreaCode}
+                            value={formData.AreaDesc}
                             onChange={handleChange}
                         />
                         )}
                     </div>
  
-                    {/* Αυτόματο ή custom Area Name */}
                     <div className="formField">
                         <label htmlFor="AreaName">Area Name</label>
                         {editableFields.AreaDesc? (
@@ -210,7 +210,7 @@ export default function Insert() {
                             id="AreaNameCustom"
                             name="AreaNameCustom"
                             placeholder="Enter new Area Name"
-                            value={formData.AreaNameCustom}
+                            value={formData.AreaDesc}
                             onChange={handleChange}
                         />
                         ) : (
@@ -218,14 +218,14 @@ export default function Insert() {
                             type="text"
                             id="AreaName"
                             name="AreaName"
-                            value={formData.AreaName}
+                            value={formData.AreaDesc}
                             readOnly
                         />
                         )}
                     </div>
                     </div>
                             
-                    {/* Dropdown για Crime Code */}
+                    {/* Dropdown -> Crime Code */}
                     <div className="formRow">
                     <div className="formField">
                         <label htmlFor="CrmCd">Crime Code</label>
@@ -233,23 +233,33 @@ export default function Insert() {
                                 id="CrmCd"
                                 name="CrmCd"
                                 value={formData.CrmCd}
-                                onChange={(e) => handleCodeChange(e, "CrmCd")}
+                                onChange={(e) => handleCodeChange(e, "Crime_code")}
                             >
                             <option value="">Select Crime Code</option>
                             {options.crime_codes.map((crime, index) => (
-                                <option key={index} value={crime.id}>{crime.id}</option>
+                                <option key={index} value={crime}>{crime}</option>
                             ))}
-                            </select>
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                        {formData.CrmCd === "custom" && (
+                        <input
+                            type="text"
+                            name="CustomCrimeCode"
+                            placeholder="Enter new Crime Code"
+                            value={formData.CrmCd}
+                            onChange={handleChange}
+                        />
+                        )}
                     </div>
                     <div className="formField">
                         <label htmlFor="CrmCdDesc">Crime Description</label>
-                        {editableFields.CrmCdDesc ? (
+                        {editableFields.Crime_codeDesc ? (
                             <input
                                 type="text"
                                 id="CrmCdDescCustom"
                                 name="CrmCdDescCustom"
                                 placeholder="Enter new description"
-                                value={formData.CrmCdDescCustom}
+                                value={formData.Crime_codeDesc}
                                 onChange={handleChange}
                             />
                             ) : (
@@ -257,7 +267,7 @@ export default function Insert() {
                                 type="text"
                                 id="CrmCdDesc"
                                 name="CrmCdDesc"
-                                value={formData.CrmCdDesc}
+                                value={formData.Crime_codeDesc}
                                 readOnly
                             />
                             )}
@@ -272,16 +282,16 @@ export default function Insert() {
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
-                            <option key={index} value={crime.id}>{crime.description}</option>
+                            <option key={index} value={crime}>{crime}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd === "custom" && (
+                        {formData.CrmCd2 === "custom" && (
                         <input
                             type="text"
                             name="CrmCd2Custom"
                             placeholder="Enter new Crime Code"
-                            value={formData.CrmCd2Custom}
+                            value={formData.CrmCd2}
                             onChange={handleChange}
                         />
                         )}
@@ -296,16 +306,16 @@ export default function Insert() {
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
-                            <option key={index} value={crime.id}>{crime.description}</option>
+                            <option key={index} value={crime}>{crime}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd === "custom" && (
+                        {formData.CrmCd3 === "custom" && (
                         <input
                             type="text"
                             name="CrmCdCustom3"
                             placeholder="Enter new Crime Code"
-                            value={formData.CrmCdCustom3}
+                            value={formData.CrmCd3}
                             onChange={handleChange}
                         />
                         )}
@@ -320,16 +330,16 @@ export default function Insert() {
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
-                            <option key={index} value={crime.id}>{crime.description}</option>
+                            <option key={index} value={crime}>{crime}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd === "custom" && (
+                        {formData.CrmCd4 === "custom" && (
                         <input
                             type="text"
                             name="CrmCdCustom4"
                             placeholder="Enter new Crime Code"
-                            value={formData.CrmCdCustom4}
+                            value={formData.CrmCd4}
                             onChange={handleChange}
                         />
                         )}
@@ -337,19 +347,16 @@ export default function Insert() {
                     </div>
                     
                     <div className="formRow">
-
-                    </div>
-                    <div className="formRow">
                      <div className="formField">
                         <label htmlFor="PremisCd">Premis Cd</label>
                         <select
-                        id="PremisCd"
-                        name="PremisCd"
-                        value={formData.PremisCd}
-                        onChange={handleChange}
+                            id="PremisCd"
+                            name="PremisCd"
+                            value={formData.PremisCd}
+                             onChange={(e) => handleCodeChange(e, "Premises")}
                         >
                         <option value="">Select Premis Cd</option>
-                        {options.area_codes.map((code, index) => (
+                        {options.premises.map((code, index) => (
                             <option key={index} value={code}>{code}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
@@ -359,22 +366,21 @@ export default function Insert() {
                             type="text"
                             name="CustomPremisCd"
                             placeholder="Enter new Premis Cd"
-                            value={formData.CustomPremisCd}
+                            value={formData.PremisCd}
                             onChange={handleChange}
                         />
                         )}
                     </div>
  
-                    {/* Αυτόματο ή custom Premis Desc */}
                     <div className="formField">
                         <label htmlFor="PremisDesc">Premis Desc</label>
-                        {editableFields.PremisDesc ? (
+                        {editableFields.PremisesDesc ? (
                         <input
                             type="text"
                             id="PremisDescCustom"
                             name="PremisDescCustom"
                             placeholder="Enter new Premis Desc"
-                            value={formData.PremisDescCustom}
+                            value={formData.PremisesDesc}
                             onChange={handleChange}
                         />
                         ) : (
@@ -382,7 +388,7 @@ export default function Insert() {
                             type="text"
                             id="PremisDesc"
                             name="PremisDesc"
-                            value={formData.PremisDesc}
+                            value={formData.PremisesDesc}
                             readOnly
                         />
                         )}
@@ -393,13 +399,13 @@ export default function Insert() {
                       <div className="formField">
                         <label htmlFor="WeaponUsedCd">Weapon Used Cd</label>
                         <select
-                        id="WeaponUsedCd"
-                        name="WeaponUsedCd"
-                        value={formData.WeaponUsedCd}
-                        onChange={handleChange}
+                            id="WeaponUsedCd"
+                            name="WeaponUsedCd"
+                            value={formData.WeaponUsedCd}
+                             onChange={(e) => handleCodeChange(e, "Weapon")}
                         >
                         <option value="">Select Weapon Used Cd</option>
-                        {options.area_codes.map((code, index) => (
+                        {options.weapons.map((code, index) => (
                             <option key={index} value={code}>{code}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
@@ -409,13 +415,12 @@ export default function Insert() {
                             type="text"
                             name="CustomWeaponUsedCd"
                             placeholder="Enter new Weapon Used Cd"
-                            value={formData.CustomWeaponUsedCd}
+                            value={formData.WeaponDesc}
                             onChange={handleChange}
                         />
                         )}
                     </div>
  
-                    {/* Αυτόματο ή custom Weapon Desc */}
                     <div className="formField">
                         <label htmlFor="WeaponDesc">Weapon Desc</label>
                         {editableFields.WeaponDesc ? (
@@ -424,7 +429,7 @@ export default function Insert() {
                             id="WeaponDescCustom"
                             name="WeaponDescCustom"
                             placeholder="Enter new Weapon Desc"
-                            value={formData.WeaponDescCustom}
+                            value={formData.WeaponDesc}
                             onChange={handleChange}
                         />
                         ) : (
@@ -487,13 +492,13 @@ export default function Insert() {
                       <div className="formField">
                         <label htmlFor="Status">Status</label>
                         <select
-                        id="Status"
-                        name="Status"
-                        value={formData.Status}
-                        onChange={handleChange}
+                            id="Status"
+                            name="Status"
+                            value={formData.Status}
+                             onChange={(e) => handleCodeChange(e, "Status")}
                         >
                         <option value="">Select Status</option>
-                        {options.area_codes.map((code, index) => (
+                        {options.statuses.map((code, index) => (
                             <option key={index} value={code}>{code}</option>
                         ))}
                         <option value="custom">Other (Add New)</option>
@@ -503,7 +508,7 @@ export default function Insert() {
                             type="text"
                             name="CustomStatus"
                             placeholder="Enter new Status"
-                            value={formData.CustomStatus}
+                            value={formData.Status}
                             onChange={handleChange}
                         />
                         )}
@@ -518,7 +523,7 @@ export default function Insert() {
                             id="StatusDescCustom"
                             name="StatusDescCustom"
                             placeholder="Enter new Status Desc"
-                            value={formData.StatusDescCustom}
+                            value={formData.StatusDesc}
                             onChange={handleChange}
                         />
                         ) : (

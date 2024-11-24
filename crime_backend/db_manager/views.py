@@ -42,26 +42,30 @@ class DropdownOptionsView(APIView):
                 
                 cursor.execute("SELECT area_id FROM Area")
                 area_codes = [row[0] for row in cursor.fetchall()]
-                print(area_codes)
+                area_codes = sorted(area_codes)
 
                 # Παράδειγμα query για Crime Codes
                 cursor.execute("""SELECT crm_cd 
                                FROM Crime_code
                                WHERE crm_cd != -1 """)
                 crime_codes = [row[0] for row in cursor.fetchall()]
+                crime_codes = sorted(crime_codes)
 
                 cursor.execute("""SELECT premis_cd 
                                FROM Premises
                                WHERE premis_cd != -1""")
                 premises = [row[0] for row in cursor.fetchall()]
+                premises = sorted(premises)
 
                 cursor.execute("""SELECT weapon_cd 
                                FROM Weapon
                                WHERE weapon_cd != -1""")
                 weapons = [row[0] for row in cursor.fetchall()]
+                weapons = sorted(weapons)
 
                 cursor.execute("SELECT status_code FROM Status")
                 statuses = [row[0] for row in cursor.fetchall()]
+                statuses = sorted(statuses)
 
             data = {
                 "area_codes": area_codes,
@@ -70,36 +74,33 @@ class DropdownOptionsView(APIView):
                 "weapons": weapons,
                 "statuses": statuses,
             }
+           
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GetCodeDescriptionView(APIView):
     def get(self, request):
-        code_type = request.query_params.get('type', None)
+        table_name = request.query_params.get('type', None)
         code_value = request.query_params.get('code', None)
-
-        if not code_type or not code_value:
+        print(table_name)
+        print(code_value)
+        if not table_name or not code_value:
             return Response({"error": "Invalid parameters"}, status=status.HTTP_400_BAD_REQUEST)
-
-        table_mapping = {
-            "area_id": "Area",
-            "crm_cd": "Crime_code",
-            "premis_cd": "Premises",
-            "weapon_used_cd": "Weapon",
-            "status": "Status",
-        }
-
-        if code_type not in table_mapping:
-            return Response({"error": "Invalid code type"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             with connection.cursor() as cursor:
-                table_name = table_mapping[code_type]
-                query = f"SELECT description FROM {table_name} WHERE code = %s"
+              
+                if table_name == "Area": query = f"SELECT area_name FROM Area WHERE area_id = %s"
+                if table_name == "Crime_code": query = f"SELECT crm_cd_desc FROM Crime_code WHERE crm_cd = %s"
+                if table_name == "Premises": query = f"SELECT premis_desc FROM Premises WHERE premis_cd = %s"
+                if table_name == "Weapon": query = f"SELECT weapon_desc FROM Weapon WHERE weapon_cd = %s"
+                if table_name == "Status": query = f"SELECT status_desc FROM Status WHERE status_code = %s"
+
                 cursor.execute(query, [code_value])
                 row = cursor.fetchone()
 
+            print(row)
             if row:
                 return Response({"description": row[0]}, status=status.HTTP_200_OK)
             return Response({"description": None}, status=status.HTTP_404_NOT_FOUND)
