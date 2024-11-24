@@ -84,7 +84,8 @@
         font-weight: 800;
 }
 
-.query1SubmitButton{
+.query1SubmitButton {
+    margin-top: 10px;
     height: 30px;
     width: 100px;
     border-radius: 10px;
@@ -103,4 +104,43 @@
 
 .query1SubmitButton:active {
     transform: translateY(0.1em);
+}
+
+.resultsTableWrapper {
+    max-height: 400px;
+    /* Μέγιστο ύψος του πίνακα */
+    overflow-y: auto;
+    /* Ενεργοποίηση κάθετου scroll */
+    margin-top: 20px;
+    border: 1px solid #263238;
+    /* Περιθώριο γύρω από τον πίνακα */
+}
+
+.resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.resultsTable th,
+.resultsTable td {
+    padding: 10px;
+    border: 1px solid #b0bec5;
+}
+
+.resultsTable td {
+    background-color: #78909c;
+}
+
+.resultsTable th {
+    background-color: #263238;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.query1ResultsTitle{
+    color: #263238;
 }
