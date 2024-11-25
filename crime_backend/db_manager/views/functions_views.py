@@ -46,6 +46,10 @@ class DropdownOptionsView(APIView):
                 mocodes = [row[0] for row in cursor.fetchall()]
                 mocodes = list(dict.fromkeys(mocodes))
 
+                cursor.execute("SELECT dr_no FROM Crime_report")
+                dr_numbers = [row[0] for row in cursor.fetchall()]
+                dr_numbers = sorted(dr_numbers)
+
             data = {
                 "area_codes": area_codes,
                 "crime_codes": crime_codes,
@@ -56,6 +60,7 @@ class DropdownOptionsView(APIView):
                 "victims_sex": victims_sex,
                 "victims_descent": victims_descent,
                 "mocodes": mocodes,
+                "dr_numbers": dr_numbers,
             }
            
             return Response(data, status=status.HTTP_200_OK)
@@ -123,3 +128,53 @@ class GenerateDRNOView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class GetRecordByDRNOView(APIView):
+    def get(self, request):
+        dr_no = request.query_params.get('dr_no')
+        if not dr_no:
+            return Response({"error": "DR_NO is required"}, status=400)
+        try:
+            with connection.cursor() as cursor:
+                query = """ 
+                    SELECT cr.dr_no, cr.date_rptd, ts.date_occ, ts.time_occ,
+                        a.area_id, a.area_name AS area_desc, cr.rpt_dist_no,
+                        p.premis_cd, p.premis_desc,
+                        cc1.crm_cd AS crm_cd1, cc1.crm_cd_desc AS crm_cd1_desc,
+                        cc2.crm_cd AS crm_cd2, cc3.crm_cd AS crm_cd3, cc4.crm_cd AS crm_cd4,
+                        w.weapon_cd, w.weapon_desc,
+                        cl.location, cl.lat AS latitude, cl.lon AS longitude, cl.cross_street,
+                        s.status_code, s.status_desc,
+                        cr.mocodes, v.vict_age, v.vict_sex, v.vict_descent
+                    FROM 
+                        Crime_report cr
+                    LEFT JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
+                    LEFT JOIN Area a ON cr.area_id = a.area_id
+                    LEFT JOIN Premises p ON cr.premis_cd = p.premis_cd
+                    LEFT JOIN Crime_code cc1 ON cr.crm_cd = cc1.crm_cd_id
+                    LEFT JOIN Crime_code cc2 ON cr.crm_cd_2 = cc2.crm_cd_id
+                    LEFT JOIN Crime_code cc3 ON cr.crm_cd_3 = cc3.crm_cd_id
+                    LEFT JOIN Crime_code cc4 ON cr.crm_cd_4 = cc4.crm_cd_id
+                    LEFT JOIN Weapon w ON cr.weapon_cd = w.weapon_cd
+                    LEFT JOIN Crime_Location cl ON cr.location_id = cl.location_id
+                    LEFT JOIN Status s ON cr.status_code = s.status_code
+                    LEFT JOIN Victim v ON cr.dr_no = v.dr_no
+                    WHERE 
+                        cr.dr_no = %s
+                """
+                cursor.execute(query, [dr_no])
+                row = cursor.fetchone()
+                print(row)
+                if row:
+                    # Map the fields to a dictionary
+                    keys = [
+                        "DR_NO", "DateRptd", "DateOcc", "TimeOcc", "AreaCode", "AreaDesc",
+                        "RptDistNo", "PremisCd", "PremisesDesc", "CrmCd", "Crime_codeDesc",
+                        "CrmCd2", "CrmCd3", "CrmCd4",
+                        "WeaponUsedCd", "WeaponDesc", "Location", "Latitude", "Longitude", 
+                        "CrossStreet", "Status", "StatusDesc",  "Mocodes", "VictAge", 
+                        "VictSex", "VictDescent"
+                    ]
+                    return Response(dict(zip(keys, row)), status=200)
+                return Response({"error": "Record not found"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)

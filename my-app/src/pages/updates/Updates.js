@@ -10,6 +10,8 @@ export default function Updates() {
     const handleLogout = () => {
         console.log('User logged out');
     };
+
+    const [changesLog, setChangesLog] = useState({});
         
     const [formData, setFormData] = useState({
         DR_NO: "",
@@ -33,6 +35,11 @@ export default function Updates() {
         CrossStreet: "",
         Status: "",
         StatusDesc: "",
+        RptDistNo: "",
+        Mocodes: "",
+        VictAge: "",
+        VictSex: "",
+        VictDescent: "",
     });
 
     const [options, setOptions] = useState({
@@ -41,6 +48,11 @@ export default function Updates() {
         premises: [],
         weapons: [],
         statuses: [],
+        rpt_dists: [],
+        victims_sex: [],
+        victims_descent: [],
+        mocodes: [],
+        dr_numbers: [],
     });
 
     const [editableFields, setEditableFields] = useState({
@@ -62,13 +74,65 @@ export default function Updates() {
         });
     }, []);
 
+
+    const loadRecordData = (drNo) => {
+        axios.get(`http://127.0.0.1:8000/api/db_manager/get-record/?dr_no=${drNo}`)
+            .then((response) => {
+                const data = response.data;
+                setFormData((prevData) => ({
+                    ...prevData,
+                    ...data, // Update all fields with the data from the backend.
+                }));
+            })
+            .catch((error) => {
+                console.error("Error fetching record data:", error);
+                alert("Failed to fetch record data.");
+            });
+    };
+
+    const handleDrNoChange = (e) => {
+        const drNo = e.target.value;
+        setFormData((prevData) => ({
+            ...prevData,
+            DR_NO: drNo,
+        }));
+        if (drNo) {
+            loadRecordData(drNo); // It loads the data for the selected DR_NO.
+        }
+    };
+
+
     const handleCodeChange = (e, type) => {
         const codeValue = e.target.value;
 
+        const codeKeyMap = {
+            "Area": "AreaCode",
+            "Crime_code": "CrmCd",
+            "Premises": "PremisCd",
+            "Weapon": "WeaponUsedCd",
+            "Status": "Status",
+        };
+
+        const descKeyMap = {
+            "Area": "AreaDesc",
+            "Crime_code": "Crime_codeDesc",
+            "Premises": "PremisesDesc",
+            "Weapon": "WeaponDesc",
+            "Status": "StatusDesc",
+        };
+
+        const codeKey = codeKeyMap[type];
+        const descKey = descKeyMap[type];
+
         setFormData((prevData) => ({
             ...prevData,
-            [type]: codeValue,
-            [`${type}Desc`]: "", // Reset description
+            [codeKey]: codeValue,
+            [descKey]: "", // Reset description
+        }));
+        // Record changes.
+        setChangesLog((prevLog) => ({
+            ...prevLog,
+            [codeKey]: codeValue,
         }));
 
         if (codeValue) {
@@ -78,7 +142,12 @@ export default function Updates() {
             .then((response) => {
                 setFormData((prevData) => ({
                     ...prevData,
-                    [`${type}Desc`]: response.data.description,
+                    [descKey]: response.data.description,
+                }));
+                // Record changes.
+                setChangesLog((prevLog) => ({
+                    ...prevLog,
+                    [descKey]: response.data.description,
                 }));
                 setEditableFields((prevFields) => ({
                     ...prevFields,
@@ -89,7 +158,7 @@ export default function Updates() {
                 if (error.response && error.response.status === 404) {
                     setFormData((prevData) => ({
                         ...prevData,
-                        [`${type}Desc`]: "",
+                        [descKey]: "",
                     }));
                     setEditableFields((prevFields) => ({
                         ...prevFields,
@@ -107,22 +176,34 @@ export default function Updates() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        // Update the formData.
         setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
+            ...prevData,
+            [name]: value,
+        }));
+
+        // Record changes.
+        setChangesLog((prevLog) => ({
+            ...prevLog,
+            [name]: value,
         }));
     };
 
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        const finalData = { ...formData };
-        ["Area","CrmCd", "PremisCd", "WeaponUsedCd", "Status"].forEach((type) => {
-        finalData[`${type}Desc`] = editableFields[`${type}Desc`]
-            ? formData[`${type}DescCustom`]
-            : formData[`${type}Desc`];
-        });
-        console.log(finalData);
+        console.log("Changes to be updated:", changesLog); // Εδώ βλέπετε τις αλλαγές που θα σταλούν.
+        axios.post("http://127.0.0.1:8000/api/db_manager/update-record/", changesLog)
+            .then((response) => {
+                alert("Update successful");
+            })
+            .catch((error) => {
+                console.error("Error during update:", error);
+            });
     };
+    
+
 
 
     return (
@@ -130,52 +211,51 @@ export default function Updates() {
             <UserNavbar userEmail={userEmail} onLogout={handleLogout} />
                 <div className="updatesFormContainer">
                 <form className="updatesForm" onSubmit={handleSubmit}>
+                    
                     <div className="formRow">
+                    
+                    {/* --- DR_NO --- */}
                     <div className="formField">
                         <label htmlFor="DR_NO">DR_NO</label>
-                        <input
-                        id="DR_NO"
-                        name="DR_NO"
-                        value={formData.DR_NO}
-                        onChange={handleChange}
-                        type="text"
-                        />
+                            <select
+                                id="DR_NO"
+                                name="DR_NO"
+                                value={formData.DR_NO || ""}
+                                onChange={(e) => { handleChange(e); handleDrNoChange(e); }}
+                            >
+                            <option value="">Select DR_NO</option>
+                            {options.dr_numbers.map((dr, index) => (
+                                <option key={index} value={dr}>
+                                    {dr}
+                                </option>
+                            ))}
+                            </select>
                     </div>
+                    
+                    {/* --- DateRptd --- */}
                     <div className="formField">
                         <label htmlFor="DateRptd">Date Rptd</label>
-                        <input
-                        id="DateRptd"
-                        name="DateRptd"
-                        value={formData.DateRptd}
-                        onChange={handleChange}
-                        type="date"
-                        />
-                    </div>
-                    </div>
-                    <div className="formRow">
-                    <div className="formField">
-                        <label htmlFor="DateOcc">DATE OCC</label>
-                        <input
-                        id="DateOcc"
-                        name="DateOcc"
-                        value={formData.DateOcc}
-                        onChange={handleChange}
-                        type="date"
-                        />
-                    </div>
-                    <div className="formField">
-                        <label htmlFor="TimeOcc">TIME OCC</label>
-                        <input
-                        id="TimeOcc"
-                        name="TimeOcc"
-                        value={formData.TimeOcc}
-                        onChange={handleChange}
-                        type="time"
-                        />
+                        <input id="DateRptd" name="DateRptd" value={formData.DateRptd} onChange={handleChange} type="date"/>
                     </div>
                     </div>
 
-                    {/* Dropdown για Area Code */}
+                    {/* ===== 2nd ROW ==== */}
+                    <div className="formRow">
+
+                    {/* --- DateOcc --- */}
+                    <div className="formField">
+                        <label htmlFor="DateOcc">DATE OCC</label>
+                        <input id="DateOcc" name="DateOcc" value={formData.DateOcc} onChange={handleChange} type="date"/>
+                    </div>
+                    
+                    {/* --- TimeOcc --- */}
+                    <div className="formField">
+                        <label htmlFor="TimeOcc">TIME OCC</label>
+                        <input id="TimeOcc" name="TimeOcc" value={formData.TimeOcc} onChange={handleChange} type="time"/>
+                    </div>
+                    </div>
+
+                    {/* Dropdown for Area Code */}
                     <div className="formRow">
                     <div className="formField">
                         <label htmlFor="AreaCode">Area Code</label>
@@ -183,7 +263,10 @@ export default function Updates() {
                             id="AreaCode"
                             name="AreaCode"
                             value={formData.AreaCode}
-                            onChange={(e) => handleCodeChange(e, "Area")}
+                            onChange={(e) => {
+                                const areaCode = e.target.value;
+                                handleCodeChange(e, "Area");
+                            }}
                         >
                         <option value="">Select Area Code</option>
                         {options.area_codes.map((code, index) => (
@@ -196,8 +279,12 @@ export default function Updates() {
                             type="text"
                             name="CustomAreaCode"
                             placeholder="Enter new Area Code"
-                            value={formData.AreaDesc}
-                            onChange={handleChange}
+                            value={formData.AreaCode}
+                            onChange={(e) => {
+                                const areaCode = e.target.value;
+                                handleChange(e);
+                                // if (formData.DateRptd) {generateDRNO(areaCode, formData.DateRptd);}
+                            }}
                         />
                         )}
                     </div>
@@ -415,7 +502,7 @@ export default function Updates() {
                             type="text"
                             name="CustomWeaponUsedCd"
                             placeholder="Enter new Weapon Used Cd"
-                            value={formData.WeaponDesc}
+                            value={formData.WeaponUsedCd}
                             onChange={handleChange}
                         />
                         )}
@@ -537,6 +624,100 @@ export default function Updates() {
                         )}
                     </div>
                     </div>
+
+                    <div className="formRow">
+                    <div className="formField">
+                        <label htmlFor="RptDistNo">Rpt Dist No</label>
+                        <select
+                            id="RptDistNo"
+                            name="RptDistNo"
+                            value={formData.RptDistNo}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Rpt Dist No</option>
+                        {options.rpt_dists.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                        {formData.RptDistNo === "custom" && (
+                        <input
+                            type="number"
+                            name="CustomRptDistNo"
+                            placeholder="Enter new RptDistNo"
+                            value={formData.RptDistNo}
+                            onChange={handleChange}
+                        />
+                        )}
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="Mocodes">Mocodes</label>
+                        <select
+                            id="Mocodes"
+                            name="Mocodes"
+                            value={formData.Mocodes}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Mocodes</option>
+                        {options.mocodes.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                        {formData.Mocodes === "custom" && (
+                        <input
+                            type="text"
+                            name="MocodesCustom"
+                            placeholder="Enter new Mocodes"
+                            value={formData.Mocodes}
+                            onChange={handleChange}
+                        />
+                        )}
+                    </div>
+                    </div>
+
+                    <div className="formRow">
+                    <div className="formField">
+                        <label htmlFor="VictAge">Victim Age</label>                     
+                        <input
+                            type="number"
+                            name="VictAge"
+                            placeholder="Enter new Victim Age"
+                            value={formData.VictAge}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="VictSex">Victim Sex</label>
+                        <select
+                            id="VictSex"
+                            name="VictSex"
+                            value={formData.VictSex}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Victim Sex</option>
+                        {options.victims_sex.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        </select>
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="VictDescent">Victim Descent</label>
+                        <select
+                            id="VictDescent"
+                            name="VictDescent"
+                            value={formData.VictDescent}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Victim Descent</option>
+                        {options.victims_descent.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                    </div>
+                    </div>
+
                     <button type="submit" className="submitButton">Submit</button>
                 </form>
             </div>
