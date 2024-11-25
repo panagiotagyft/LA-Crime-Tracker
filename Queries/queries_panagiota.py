@@ -80,8 +80,8 @@ sql="""
     SELECT 
         area_name,
         COUNT(*) AS total_crimes
-    FROM la_crimes.crime_report 
-    INNER JOIN la_crimes.area ON area_area_id = area_id
+    FROM crime_report 
+    INNER JOIN area ON are.area_id = crime_report.area_id
     WHERE date_rptd BETWEEN %s AND %s
     GROUP BY area_name
     ORDER BY total_crimes DESC
@@ -96,11 +96,11 @@ for row in results:
 print()
 
 sql="""
-    SELECT reporting_district_rpt_dist_no AS rpt_dist_no,
+    SELECT rpt_dist_no,
            COUNT(*) AS total_crimes
-    FROM la_crimes.crime_report 
+    FROM crime_report 
     WHERE date_rptd BETWEEN %s AND %s
-    GROUP BY reporting_district_rpt_dist_no
+    GROUP BY rpt_dist_no
     ORDER BY total_crimes DESC
     LIMIT 5;
 """
@@ -129,15 +129,16 @@ start_date = '2021-09-01'
 end_date =  '2025-10-16'
 
 sql="""
-    SELECT report.crime_type_crm_cd AS snd_crime, COUNT(report.crime_type_crm_cd) as frequency
-    FROM la_crimes.crime_report AS report
+    SELECT report.crm_cd AS snd_crime, COUNT(report.crm_cd) as frequency
+    FROM crime_report AS report
     WHERE report.crime_type_crm_cd <> %s AND 
-          (report.crime_chronicle_date_occ, report.crime_chronicle_time_occ) IN  
-                                  ( SELECT report.crime_chronicle_date_occ, report.crime_chronicle_time_occ
-                                    FROM la_crimes.crime_report AS report
-                                    WHERE report.crime_type_crm_cd = %s AND 
-                                          report.crime_chronicle_date_occ BETWEEN %s AND %s )
-    GROUP BY report.crime_type_crm_cd
+          (report.timestamp_id) IN  
+                                  ( SELECT Timestamp.time_stamp_id
+                                    FROM Crime_report AS report
+                                    JOIN Timestamp AS time ON report.timestamp_id = time.timestamp_id
+                                    WHERE report.crm_cd = %s AND 
+                                          time.date_occ BETWEEN %s AND %s )
+    GROUP BY report.crm_cd
     ORDER BY frequency DESC
     LIMIT 1 OFFSET 1;    
 """
@@ -158,9 +159,10 @@ c = 113
 sql = """
     -- Create a table with unique crime dates for each area
     WITH area_dates AS (
-        SELECT area_name, crime_chronicle_date_occ AS date
-        FROM la_crimes.crime_report 
-        INNER JOIN la_crimes.area ON area_area_id = area_id
+        SELECT area_name, Timestamp.date_occ AS date
+        FROM crime_report 
+        JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
+        INNER JOIN area ON area_id = area_id
         WHERE crime_type_crm_cd  = %s  
         GROUP BY area_name, date
     )
@@ -187,9 +189,10 @@ print()
 c = 954
 sql="""
     WITH rpt_dist_dates AS (
-        SELECT reporting_district_rpt_dist_no AS rpt_dist_no, crime_chronicle_date_occ AS date
-        FROM la_crimes.crime_report 
-        WHERE crime_type_crm_cd  = %s  
+        SELECT rpt_dist_no, Timestamp.date_occ AS date
+        FROM crime_report
+        JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
+        WHERE crm_cd  = %s  
         GROUP BY rpt_dist_no, date
     )
 
@@ -219,12 +222,12 @@ start_time='00:00:00'
 end_time='23:59:00'
 sql="""
     WITH dr_date_weapon AS(
-        SELECT dr_no, date_rptd, weapon_weapon_used_cd AS weapon_cd, area_area_id AS area_id
-        FROM la_crimes.crime_report 
-        JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no
-        WHERE crime_chronicle_time_occ BETWEEN %s AND %s
-        GROUP BY dr_no, date_rptd, weapon_weapon_used_cd, area_area_id
-        ORDER BY date_rptd, weapon_weapon_used_cd, area_area_id
+        SELECT dr_no, date_rptd, weapon_cd, area_id
+        FROM crime_report 
+        JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
+        WHERE time_occ BETWEEN %s AND %s
+        GROUP BY dr_no, date_rptd, weapon_cd, area_id
+        ORDER BY date_rptd, weapon_cd, area_id
     ),
     RemoveDuplicates AS(
         SELECT date_rptd, weapon_cd, area_id
@@ -256,31 +259,31 @@ end_time='23:59:00'
 N=15
 sql=""" 
     WITH AuxiliaryTable1 AS(
-        SELECT crime_type_crm_cd AS crime_cd, 
-            crime_chronicle_date_occ as date,
-            weapon_weapon_used_cd AS weapon_cd,
-            area_area_id AS area_id
-        FROM la_crimes.crime_report 
-        JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no
-        WHERE crime_chronicle_time_occ BETWEEN %s AND %s
-        GROUP BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_weapon_used_cd, area_area_id 
-        HAVING COUNT(crime_type_crm_cd) = %s
-        ORDER BY crime_type_crm_cd, crime_chronicle_date_occ, weapon_weapon_used_cd, area_area_id
+        SELECT crime_cd, 
+            date_occ as date,
+            weapon_cd,
+            area_id
+        FROM crime_report
+        JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
+        WHERE time_occ BETWEEN %s AND %s
+        GROUP BY crm_cd, date_occ, weapon_cd, area_id 
+        HAVING COUNT(crm_cd) = %s
+        ORDER BY crm_cd, date_occ, weapon_cd, area_id
     ),
     DR_NO_LIST AS(
         SELECT dr_no
         FROM AuxiliaryTable1
-        JOIN la_crimes.crime_report ON crime_chronicle_date_occ=date AND crime_type_crm_cd=crime_cd AND area_area_id = area_id
-        JOIN la_crimes.crime_report_has_weapon ON dr_no = crime_report_dr_no AND  weapon_weapon_used_cd=weapon_cd
-    )
+        JOIN crime_report AS report ON crm_cd=crime_cd AND area_id = area_id
+        JOIN Timestamp AS time ON time.time_stamp_id = report.timestamp_id
+        WHERE date_occ = date AND time_occ BETWEEN %s AND %s
+        JOIN weapon ON weapon_cd=weapon_cd
+        )
     SELECT DISTINCT report.dr_no, area_name, crm_cd_desc, weapon_desc
     FROM DR_NO_LIST AS dr
-    JOIN la_crimes.crime_report AS report ON dr.dr_no = report.dr_no 
-    JOIN la_crimes.area ON area_area_id=area_id 
-    JOIN la_crimes.crime_type ON crm_cd=crime_type_crm_cd
-    JOIN la_crimes.crime_report_has_weapon ON report.dr_no = crime_report_dr_no
-    JOIN la_crimes.weapon ON weapon_weapon_used_cd=weapon_used_cd
-
+    JOIN crime_report AS report ON dr.dr_no = report.dr_no 
+    JOIN area
+    JOIN crime_code
+    JOIN weapon ON weapon_cd=weapon_cd
     
 """
 cursor.execute(sql, (start_time,end_time, N))

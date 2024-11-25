@@ -2,13 +2,15 @@ import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_batch
 from datetime import datetime
+import time
 
+start_time = time.time()
 # Replace with your actual details
 DB_HOST = 'localhost'
 DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112_10k.csv'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112.csv'
 sql_commands = 'create_tables.sql'
 
 # Connect to the PostgreSQL database
@@ -332,3 +334,5 @@ print('ok for Victim!')
 # Close the cursor and connection
 cursor.close()
 conn.close()
+
+print(f"--- {time.time() - start_time} seconds ---")

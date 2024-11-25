@@ -41,28 +41,28 @@ if __name__ == "__main__":
 
     if conn:
         # Create table if it doesn't exist
-        start_time = "00:00:00"
-        end_time = "24:00:00"
-        # get_reports_per_crime_code_in_time_range(conn, str(start_time), str(end_time))
+        # start_time = "00:00:00"
+        # end_time = "24:00:00"
+        # # get_reports_per_crime_code_in_time_range(conn, str(start_time), str(end_time))
 
                     
-        # Example usage with a single date in the format "YYYY-MM-DD"
-        specific_date = '2024-01-01'  # Specific date to query
-        most_common_crime_per_area(conn, specific_date)
+        # # Example usage with a single date in the format "YYYY-MM-DD"
+        # specific_date = '2024-01-01'  # Specific date to query
+        # most_common_crime_per_area(conn, specific_date)
         
         
         # #MUST PREPROCESS MESSY DATA!!!
         # # Example usage
-        # specific_date = '2024-10-28'  # Date for the query
-        # min_lat = 34242             # Replace with minimum latitude of bounding box
-        # max_lat = 337823             # Replace with maximum latitude of bounding box
-        # min_lon = -1170000           # Replace with minimum longitude of bounding box
-        # max_lon = -118243           # Replace with maximum longitude of bounding box
+        specific_date = '2020-03-01'  # Date for the query
+        min_lat = 34242             # Replace with minimum latitude of bounding box
+        max_lat = 337823             # Replace with maximum latitude of bounding box
+        min_lon = -1170000           # Replace with minimum longitude of bounding box
+        max_lon = -118243           # Replace with maximum longitude of bounding box
 
-        # result = most_common_crime_cd_bounding_box(conn, specific_date, min_lat, max_lat, min_lon, max_lon)
-        # if result:
-        #     for row in result:
-        #         print(f"Crime Code: {row[0]}, Frequency: {row[1]}")
+        result = most_common_crime_cd_bounding_box(conn, specific_date, min_lat, max_lat, min_lon, max_lon)
+        if result:
+            for row in result:
+                print(f"Crime Code: {row[0]}, Frequency: {row[1]}")
         
         # conn.close()
         # most_common_weapon_to_age_group(conn)

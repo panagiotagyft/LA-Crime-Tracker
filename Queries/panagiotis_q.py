@@ -137,17 +137,17 @@ def most_common_crime_cd_bounding_box(connection, specific_date, min_lat, max_la
     query = f"""
     SELECT crm_cd, frequency FROM (
         SELECT 
-            ct.crm_cd,
+            cr.crm_cd,
             COUNT(*) AS frequency,
             RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
         FROM crime_report cr
-        JOIN crime_incident_crime_code cicc ON cr.dr_no = cicc.dr_no
-        JOIN Crime_code ct ON cicc.crm_cd = ct.crm_cd
-        JOIN crime_location cl ON cr.crime_location_location = cl.location
-        WHERE cr.crime_chronicle_date_occ = '{specific_date}' 
+        JOIN crime_location cl ON cr.location_id = cl.location_id
+        JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
+        JOIN Crime_code cc ON cr.crm_cd = cc.crm_cd_id
+        WHERE ts.date_occ = '{specific_date}' 
           AND cl.lat BETWEEN {min_lat} AND {max_lat}     
           AND cl.lon BETWEEN {min_lon} AND {max_lon}     
-        GROUP BY ct.crm_cd
+        GROUP BY cr.crm_cd ---this is id, not the code
     ) AS ranked_crimes
     WHERE rank = 1;
     """
@@ -184,26 +184,27 @@ def most_common_cooccurring_crimes_in_top_area(connection, start_date, end_date)
     ORDER BY COUNT(*) DESC
     LIMIT 1;
     """
-    
+    #! add crimes of that time as table
     cooccurring_crimes_query = """
     WITH AreaIncidentCounts AS (
-        SELECT area_area_id
+        SELECT area_id
         FROM crime_report
-        WHERE crime_chronicle_date_occ BETWEEN %s AND %s
-        GROUP BY area_area_id
+        JOIN Timestamp ON crime_report.timestamp_id = Timestamp.timestamp_id
+        WHERE date_occ BETWEEN %s AND %s
+        GROUP BY area_id
         ORDER BY COUNT(*) DESC
         LIMIT 1
     )
     SELECT 
-        cic1.crm_cd AS crime1,
-        cic2.crm_cd AS crime2,
+        cr1.crm_cd AS crime1,
+        cr1.crm_cd AS crime2,
         COUNT(*) AS co_occurrence_count
-    FROM crime_report cr
-    JOIN crime_incident_crime_code cic1 ON cr.dr_no = cic1.dr_no
-    JOIN crime_incident_crime_code cic2 ON cr.dr_no = cic2.dr_no 
-        AND cic1.crm_cd < cic2.crm_cd
-    WHERE cr.area_area_id = (SELECT area_area_id FROM AreaIncidentCounts)
-      AND cr.crime_chronicle_date_occ BETWEEN %s AND %s
+    FROM crime_report cr1, crime_report cr2
+        AND cr1.crm_cd < cr2.crm_cd
+    JOIN Crime_code cc1 ON cr1.crm_cd = cc1.crm_cd_id
+    JOIN Crime_code cc2 ON cr2.crm_cd = cc2.crm_cd_id
+    WHERE cr.area_id = (SELECT area_area_id FROM AreaIncidentCounts)
+      AND cr.date_occ BETWEEN %s AND %s
     GROUP BY crime1, crime2
     ORDER BY co_occurrence_count DESC;
     """
@@ -272,7 +273,7 @@ def most_common_cooccurring_crimes_in_top_area(connection, start_date, end_date)
 
 
 
-#Query 9 - Most Common Weapon Used by Age Group, questinoble results
+#Query 9 - Most Common Weapon Used by Age Group, questionable results
 def most_common_weapon_to_age_group(connection):
     query = """
     SELECT age_group, weapon_desc, frequency
@@ -283,9 +284,9 @@ def most_common_weapon_to_age_group(connection):
             COUNT(*) AS frequency,
             RANK() OVER (PARTITION BY FLOOR(v.vict_age / 5) * 5 ORDER BY COUNT(*) DESC) AS rank
         FROM victim v
-        JOIN crime_report_has_weapon crw ON v.dr_no = crw.crime_report_dr_no
-        JOIN weapon w ON crw.weapon_weapon_used_cd = w.weapon_used_cd
-        WHERE v.vict_age IS NOT NULL
+        JOIN Crime_report cr ON v.dr_no = cr.dr_no
+        JOIN Weapon w ON cr.weapon_cd = w.weapon_cd
+        WHERE v.vict_age IS NOT NULL AND v.vict_age > 0
         GROUP BY age_group, w.weapon_desc
     ) AS ranked_weapons
     WHERE rank = 1
@@ -329,7 +330,7 @@ def areas_with_multiple_reports_on_two_crimes(connection, crime1, crime2):
     FROM (
         SELECT 
             a.area_name,
-            cr.crime_chronicle_date_occ AS report_date,
+            cr.date_rpt AS report_date,
             ct.crm_cd_desc AS Crime_code,
             COUNT(*) AS report_count
         FROM crime_report cr
