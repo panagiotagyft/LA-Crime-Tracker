@@ -6,5 +6,5 @@ urlpatterns = [
     path('dropdown-options/', DropdownOptionsView.as_view(), name='dropdown-options'),
     path('get-code-description/', GetCodeDescriptionView.as_view(), name='get-code-description'),
     path('generate-drno/', GenerateDRNOView.as_view(), name='generate-drno'),
-    path('save-new-code/', SaveNewCodeView.as_view(), name='save-new-code'),
+    path('insert-record/', SaveNewCodeView.as_view(), name='insert-record'),
 ]

@@ -33,6 +33,11 @@ export default function Insert() {
         CrossStreet: "",
         Status: "",
         StatusDesc: "",
+        RptDistNo: "",
+        Mocodes: "",
+        VictAge: "",
+        VictSex: "",
+        VictDescent: "",
     });
 
     const [options, setOptions] = useState({
@@ -41,6 +46,10 @@ export default function Insert() {
         premises: [],
         weapons: [],
         statuses: [],
+        rpt_dists: [],
+        victims_sex: [],
+        victims_descent: [],
+        mocodes: [],
     });
 
     const [editableFields, setEditableFields] = useState({
@@ -158,14 +167,62 @@ export default function Insert() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const finalData = { ...formData };
-        ["Area","CrmCd", "PremisCd", "WeaponUsedCd", "Status"].forEach((type) => {
-        finalData[`${type}Desc`] = editableFields[`${type}Desc`]
-            ? formData[`${type}DescCustom`]
-            : formData[`${type}Desc`];
-        });
-        console.log(finalData);
+
+        // Check if all the required fields are filled in.
+        if (!formData.DateRptd || !formData.AreaCode || !formData.CrmCd) {
+            alert("Please fill in all the required fields.");
+            return;
+        }
+
+        // Sending the data to the backend.
+        axios.post("http://127.0.0.1:8000/api/db_manager/insert-record/", formData)
+            .then((response) => {
+                alert("The data has been successfully entered!");
+                
+                setFormData({
+                    DR_NO: "",
+                    DateRptd: "",
+                    DateOcc: "",
+                    TimeOcc: "",
+                    AreaCode: "",
+                    AreaDesc: "",
+                    PremisCd: "",
+                    PremisesDesc: "",
+                    CrmCd: "",
+                    Crime_codeDesc: "",
+                    CrmCd2: "",
+                    CrmCd3: "",
+                    CrmCd4: "",
+                    WeaponUsedCd: "",
+                    WeaponDesc: "",
+                    Location: "",
+                    Latitude: "",
+                    Longitude: "",
+                    CrossStreet: "",
+                    Status: "",
+                    StatusDesc: "",
+                    RptDistNo: "",
+                    Mocodes: "",
+                    VictAge: "",
+                    VictSex: "",
+                    VictDescent: "",
+                });
+            })
+            .catch((error) => {
+                if (error.response && error.response.data) {
+                    const errors = error.response.data;
+                    let errorMessage = "Error during data entry:\n";
+                    for (const key in errors) {
+                        errorMessage += `${key}: ${errors[key]}\n`;
+                    }
+                    alert(errorMessage);
+                } else {
+                    console.error("Error during data entry:", error);
+                    alert("Error during data entry: " + error.message);
+                }
+            });
     };
+
 
 
     return (
@@ -243,8 +300,9 @@ export default function Insert() {
                             placeholder="Enter new Area Code"
                             value={formData.AreaCode}
                             onChange={(e) => {
+                                const areaCode = e.target.value;
                                 handleChange(e);
-                                generateDRNO();
+                                if (formData.DateRptd) {generateDRNO(areaCode, formData.DateRptd);}
                             }}
                         />
                         )}
@@ -585,6 +643,100 @@ export default function Insert() {
                         )}
                     </div>
                     </div>
+
+                    <div className="formRow">
+                    <div className="formField">
+                        <label htmlFor="RptDistNo">Rpt Dist No</label>
+                        <select
+                            id="RptDistNo"
+                            name="RptDistNo"
+                            value={formData.RptDistNo}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Rpt Dist No</option>
+                        {options.rpt_dists.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                        {formData.RptDistNo === "custom" && (
+                        <input
+                            type="number"
+                            name="CustomRptDistNo"
+                            placeholder="Enter new RptDistNo"
+                            value={formData.RptDistNo}
+                            onChange={handleChange}
+                        />
+                        )}
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="Mocodes">Mocodes</label>
+                        <select
+                            id="Mocodes"
+                            name="Mocodes"
+                            value={formData.Mocodes}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Mocodes</option>
+                        {options.mocodes.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                        {formData.Mocodes === "custom" && (
+                        <input
+                            type="text"
+                            name="MocodesCustom"
+                            placeholder="Enter new Mocodes"
+                            value={formData.Mocodes}
+                            onChange={handleChange}
+                        />
+                        )}
+                    </div>
+                    </div>
+
+                    <div className="formRow">
+                    <div className="formField">
+                        <label htmlFor="VictAge">Victim Age</label>                     
+                        <input
+                            type="number"
+                            name="VictAge"
+                            placeholder="Enter new Victim Age"
+                            value={formData.VictAge}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="VictSex">Victim Sex</label>
+                        <select
+                            id="VictSex"
+                            name="VictSex"
+                            value={formData.VictSex}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Victim Sex</option>
+                        {options.victims_sex.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        </select>
+                    </div>
+                    <div className="formField">
+                        <label htmlFor="VictDescent">Victim Descent</label>
+                        <select
+                            id="VictDescent"
+                            name="VictDescent"
+                            value={formData.VictDescent}
+                            onChange={handleChange}
+                        >
+                        <option value="">Select Victim Descent</option>
+                        {options.victims_descent.map((code, index) => (
+                            <option key={index} value={code}>{code}</option>
+                        ))}
+                        <option value="custom">Other (Add New)</option>
+                        </select>
+                    </div>
+                    </div>
+
                     <button type="submit" className="submitButton">Submit</button>
                 </form>
             </div>
