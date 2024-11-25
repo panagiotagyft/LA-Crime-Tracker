@@ -36,38 +36,37 @@ sql = """
 cursor.execute(sql, (c, t1, t2))
 
 # Fetch results
-print("Results for Crm Cd 623")
-results = cursor.fetchall()
-for row in results:
-   print(f"{row[0]} -> {row[1]}")
-print(len(results))
-print()
+# print("Results for Crm Cd 623")
+# results = cursor.fetchall()
+# for row in results:
+#    print(f"{row[0]} -> {row[1]}")
+# print(len(results))
+# print()
 
-
-cursor.close()
-conn.close()
-exit()
 
 
 # ---------------------------------------------------------------------------------------------------
 # -- 4:  Find the average number of crimes occurred per hour (24 hours) for a specific date range. --
 # ---------------------------------------------------------------------------------------------------
-start_date = '2023-01-01'
-end_date =  '2023-01-05'
+start_date = '2020-01-01'
+end_date =  '2024-01-05'
 sql = """
-    SELECT count(report.dr_no) / count(distinct report.crime_chronicle_date_occ) AS avg_number_of_crimes
-    FROM la_crimes.crime_report AS report 
-    WHERE report.crime_chronicle_date_occ BETWEEN %s AND %s 
+    SELECT count(report.dr_no) / count(distinct time.date_occ) AS avg_number_of_crimes
+    FROM Crime_report AS report 
+    JOIN Timestamp AS time ON report.timestamp_id = time.timestamp_id
+    WHERE time.date_occ BETWEEN %s AND %s 
 """
 
 # Execute the query with parameters
 cursor.execute(sql, (start_date, end_date))
 
-# Fetch results
-results = cursor.fetchall()
-for row in results:
-    print(f"{row[0]}")
-print()
+# # Fetch results
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]}")
+# print()
+
+
 
 
 #-------------------------------------------------------------------------------------------------
@@ -113,6 +112,12 @@ results = cursor.fetchall()
 for row in results:
     print(f"{row[0]} {row[1]}")
 print()
+
+
+
+cursor.close()
+conn.close()
+exit()
 
 
 # --------------------------------------------------------------------------------------------
