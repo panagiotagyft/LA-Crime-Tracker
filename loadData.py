@@ -202,7 +202,7 @@ for i in range(1, 5):
         if crm_cd_col in df.columns:
             temp_df = df[[crm_cd_col]].drop_duplicates()  # Remove duplicates
             temp_df.columns = ['crm_cd']  # Rename the column
-            temp_df['crm_cd_desc'] = 'there is no description!'  # Add a description column with empty values
+            temp_df['crm_cd_desc'] = 'no description'  # Add a description column with empty values
             crm_code_list.append(temp_df)  # Append to the list
 
 

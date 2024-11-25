@@ -40,10 +40,8 @@ def most_common_crime_per_area(connection, specific_date):
     WITH FilteredCrimes AS (
         SELECT Area.area_id, Crime_report.crm_cd, crm_cd_2, crm_cd_3, crm_cd_4
         FROM Crime_report
-        JOIN Reporting_district ON Crime_report.area_id = Reporting_district.area_id
-        JOIN Area ON Reporting_district.area_id = Area.area_id
-        JOIN Crime_code ON Crime_report.crm_cd = Crime_code.crm_cd_id
-        WHERE date_rptd = %s AND Crime_code.crm_cd != -1 
+        JOIN Area ON Crime_report.area_id = Area.area_id
+        WHERE date_rptd = %s
     ),
     FlattenedCrimes AS (
         SELECT 
@@ -86,14 +84,13 @@ def most_common_crime_per_area(connection, specific_date):
         ---area_name,
         MostCommonCrimes.area_id,
         crime_code,
-        Crime_code.crm_cd_desc,
         crime_count
-    FROM MostCommonCrimes, Crime_code
-   WHERE Crime_code.crm_cd = MostCommonCrimes.crime_code AND crime_code = MostCommonCrimes.crime_code ;
+    FROM MostCommonCrimes
+    JOIN Crime_code ON MostCommonCrimes.crime_code = Crime_code.crm_cd_id
+    WHERE Crime_code.crm_cd != -1
 """
 
     print("Date is ", specific_date)   
-    specific_date = '2022-11-20' 
     cursor = connection.cursor()  # Use RealDictCursor for dict-like rows
     cursor.execute(query, (specific_date,))
     reports = cursor.fetchall()
@@ -101,7 +98,7 @@ def most_common_crime_per_area(connection, specific_date):
     
     print("Query 3: Most common crime code within bounding box on the specific date:")
     for row in reports:
-        print(f"Crime Code: {row[0]}, Code: {row[1]}, Frequency: {row[2]}")
+        print(f"Area Code: {row[0]}, Crime Code: {row[1]}, Frequency: {row[2]}")
         
 
     
@@ -118,11 +115,8 @@ def most_common_crime_per_area(connection, specific_date):
     # cursor.execute(verify_query, (specific_date,))
     # area_reports = cursor.fetchall()
     
-    # report = execute_query(connection, query, (specific_date,))
     # print("Area Reports (area_id, crm_cd, crm_cd_2, crm_cd_3, crm_cd_4):")
-    # for row in area_reports:
-    #     print("Area id: {row[0]}, Crime Codes: {row[1]}, {row[2]}, {row[3]}, {row[4]}")
-    
+    # print(area_reports)    
 
     
     
