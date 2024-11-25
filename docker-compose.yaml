@@ -3,7 +3,6 @@ version: "3.8"
 services:
   db:
     image: postgres
-    restart: always
     ports:
       - 5432:5432
     environment:
@@ -16,17 +15,17 @@ services:
       - pgdata:/var/lib/postgresql/data/
     network_mode: "host"
     # networks:
-      # - app-network
+    # - app-network
 
   adminer:
     image: adminer
-    restart: always
     ports:
       - 8080:8080
     # networks:
-      # - app-network
+    # - app-network
 
-    network_mode: "host"
+    network_mode:
+      "host"
       # - app-network
 
   python_app:

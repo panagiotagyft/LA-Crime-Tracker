@@ -5,10 +5,10 @@ from datetime import datetime
 
 # Replace with your actual details
 DB_HOST = 'localhost'
-DB_NAME = 'la_crimes'
+DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112.csv'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112_10k.csv'
 sql_commands = 'create_tables.sql'
 
 # Connect to the PostgreSQL database
@@ -166,21 +166,6 @@ conn.commit()
 print('ok for Premises!')
 
 # ---------------------------------------------------------------------
-# Insert data into the -- Reporting_District -- table
-reporting_district_df = df[['Rpt Dist No', 'AREA']].rename(
-    columns={'Rpt Dist No': 'rpt_dist_no', 'AREA': 'area_id'}
-)
-# Correction: Use 'area_id' instead of 'area_area_id'
-reporting_district_records = reporting_district_df.drop_duplicates(subset=['rpt_dist_no', 'area_id']).to_dict('records')
-execute_batch(cursor, """
-    INSERT INTO Reporting_District (rpt_dist_no, area_id)
-    VALUES (%s, %s)
-    ON CONFLICT (rpt_dist_no) DO NOTHING
-""", [(record['rpt_dist_no'], record['area_id']) for record in reporting_district_records])
-conn.commit()
-print('ok for Reporting_District!')
-
-# ---------------------------------------------------------------------
 # Insert data into the -- Weapon -- table
 weapon_df = df[['Weapon Used Cd', 'Weapon Desc']].rename(columns={'Weapon Used Cd': 'weapon_cd', 'Weapon Desc': 'weapon_desc'})
 weapon_df['weapon_cd'] = weapon_df['weapon_cd'].fillna(-1).astype(int)
@@ -283,14 +268,13 @@ df['timestamp_id'] = df.apply(get_timestamp_id, axis=1)
 # ---------------------------------------------------------------------
 # Insert data into the -- Crime_report -- table
 crime_report_df = df[['DR_NO', 'Date Rptd', 'timestamp_id', 'Status', 'Premis Cd',
-                      'Rpt Dist No', 'AREA', 'location_id', 'Mocodes', 'Weapon Used Cd',
+                      'AREA', 'location_id', 'Mocodes', 'Weapon Used Cd',
                       'crm_cd_id', 'crm_cd_2_id', 'crm_cd_3_id', 'crm_cd_4_id']].rename(
     columns={
         'DR_NO': 'dr_no',
         'Date Rptd': 'date_rptd',
         'Status': 'status_code',
         'Premis Cd': 'premis_cd',
-        'Rpt Dist No': 'rpt_dist_no',
         'AREA': 'area_id',
         'Mocodes': 'mocodes',
         'Weapon Used Cd': 'weapon_cd'
@@ -298,22 +282,20 @@ crime_report_df = df[['DR_NO', 'Date Rptd', 'timestamp_id', 'Status', 'Premis Cd
 )
 crime_report_df['premis_cd'] = crime_report_df['premis_cd'].fillna(-1).astype(int)
 crime_report_df['weapon_cd'] = crime_report_df['weapon_cd'].fillna(-1).astype(int)
-crime_report_df['rpt_dist_no'] = crime_report_df['rpt_dist_no'].fillna(-1).astype(int)
 crime_report_records = crime_report_df.to_dict('records')
 
 for record in crime_report_records:
     cursor.execute("""
         INSERT INTO Crime_report (
-            dr_no, date_rptd, timestamp_id, status_code, premis_cd, rpt_dist_no,
+            dr_no, date_rptd, timestamp_id, status_code, premis_cd,
             area_id, location_id, mocodes, weapon_cd, crm_cd, crm_cd_2, crm_cd_3, crm_cd_4
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         record['dr_no'],
         record['date_rptd'],
         record['timestamp_id'],
         record['status_code'],
         record['premis_cd'],
-        record['rpt_dist_no'],
         record['area_id'],
         record['location_id'],
         record['mocodes'],

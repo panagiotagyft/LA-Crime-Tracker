@@ -1,1 +1,7 @@
 
+*.csv
+*__pycache__*
+
+/my-app/node_modules
+/my-app/package-lock.json
+/my-app/package.json

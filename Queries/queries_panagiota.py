@@ -2,10 +2,10 @@ import pandas as pd
 import psycopg2
 
 DB_HOST = 'localhost'
-DB_NAME = 'LA-Crimes'
+DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
+# CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241102.csv'
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
@@ -19,27 +19,34 @@ cursor = conn.cursor()
 # ------------------------------------------------------------------------------------------
 # -- 2:  Find the total number of reports per day for a specific “Crm Cd” and time range  --
 # ------------------------------------------------------------------------------------------
-t1='10:23:00'
-t2='10:26:00'
-c=623
+t1='00:00:00'
+t2='10:00:00'
+c=118
 sql = """
-    SELECT report.date_rptd, COUNT(report.dr_no)
-    FROM la_crimes.crime_report AS report
-    WHERE report.crime_type_crm_cd = %s AND 
-          report.crime_chronicle_time_occ BETWEEN %s AND %s 
+    SELECT report.date_rptd, COUNT(report.dr_no) as total_reports
+    FROM Crime_Report AS report
+    JOIN Timestamp AS time ON report.timestamp_id = time.timestamp_id
+    WHERE report.crm_cd = %s AND 
+          time.time_occ BETWEEN %s AND %s 
     GROUP BY report.date_rptd
-    ORDER BY report.date_rptd;
+    ORDER BY total_reports DESC;
 """
 
 # Execute the query with parameters
 cursor.execute(sql, (c, t1, t2))
 
 # Fetch results
+print("Results for Crm Cd 623")
 results = cursor.fetchall()
 for row in results:
    print(f"{row[0]} -> {row[1]}")
 print(len(results))
 print()
+
+
+cursor.close()
+conn.close()
+exit()
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -101,6 +108,7 @@ sql="""
 cursor.execute(sql, (start_date, end_date))
 
 # Fetch results
+print("Results for Rpt Dist No")
 results = cursor.fetchall()
 for row in results:
     print(f"{row[0]} {row[1]}")

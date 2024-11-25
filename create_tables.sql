@@ -22,12 +22,6 @@ CREATE TABLE IF NOT EXISTS Premises (
   premis_cd INTEGER PRIMARY KEY,
   premis_desc VARCHAR(100) NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS Reporting_District (
-  rpt_dist_no INTEGER NOT NULL PRIMARY KEY,
-  area_id INTEGER NOT NULL,
-  FOREIGN KEY (area_id) REFERENCES Area(area_id)
-);
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS Crime_code (
   crm_cd_id SERIAL PRIMARY KEY,
@@ -52,7 +46,6 @@ CREATE TABLE IF NOT EXISTS Crime_report (
   timestamp_id INTEGER NOT NULL REFERENCES Timestamp(timestamp_id),
   status_code VARCHAR(10) NOT NULL REFERENCES Status(status_code),
   premis_cd INTEGER NOT NULL REFERENCES Premises(premis_cd),
-  rpt_dist_no INTEGER NOT NULL REFERENCES Reporting_District(rpt_dist_no), 
   area_id INTEGER NOT NULL REFERENCES Area(area_id),
   location_id INTEGER REFERENCES Crime_Location(location_id),
   mocodes VARCHAR(50),

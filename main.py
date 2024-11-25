@@ -2,7 +2,7 @@ import time
 import psycopg2
 import random
 from psycopg2 import OperationalError, sql
-from panagiotis_q import *
+from Queries.panagiotis_q import *
 
 
 
@@ -41,14 +41,14 @@ if __name__ == "__main__":
 
     if conn:
         # Create table if it doesn't exist
-        # start_time = 218
-        # end_time = 219
+        start_time = "00:00:00"
+        end_time = "24:00:00"
         # get_reports_per_crime_code_in_time_range(conn, str(start_time), str(end_time))
 
                     
         # Example usage with a single date in the format "YYYY-MM-DD"
-        # specific_date = '2024-10-28'  # Specific date to query
-        # most_common_crime_per_area(conn, specific_date)
+        specific_date = '2024-01-01'  # Specific date to query
+        most_common_crime_per_area(conn, specific_date)
         
         
         # #MUST PREPROCESS MESSY DATA!!!
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         # all_weapons_by_age_group_desc(conn)   #usefull to cinfirm the results of the previous query
         # list_all_crime_types_by_frequency(conn)
         # areas_with_multiple_reports_on_two_crimes(conn, 'VEHICLE - STOLEN', 'BATTERY - SIMPLE ASSAULT')
-        get_earliest_and_latest_dates(conn)
-        most_common_cooccurring_crimes_in_top_area(conn, '2020-01-01', '2024-10-29')
+        # get_earliest_and_latest_dates(conn)
+        # most_common_cooccurring_crimes_in_top_area(conn, '2020-01-01', '2024-10-29')
         
         

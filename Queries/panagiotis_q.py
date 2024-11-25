@@ -1,5 +1,5 @@
 import psycopg2
-
+from psycopg2.extras import RealDictCursor  # To get results as dictionaries
 def execute_query(connection, query, params=()):
     """Helper function to execute a query and return results."""
     with connection.cursor() as cursor:
@@ -13,9 +13,9 @@ def get_reports_per_crime_code_in_time_range(connection, start_time, end_time):
     """
     query = """
         SELECT crm_cd, COUNT(*) AS report_count
-        FROM crime_incident_crime_code AS code
-        JOIN crime_report AS report ON code.dr_no = report.dr_no
-        WHERE report.crime_chronicle_time_occ BETWEEN %s AND %s
+        FROM Crime_Report
+        JOIN Timestamp ON Crime_Report.timestamp_id = Timestamp.timestamp_id
+        WHERE Timestamp.time_occ BETWEEN %s AND %s
         GROUP BY crm_cd
         ORDER BY report_count DESC;
     """
@@ -37,31 +37,102 @@ def most_common_crime_per_area(connection, specific_date):
     Query to find the most common crime per area on a specific date with format "YYYY-MM-DD".
     """
     query = f"""
-    SELECT area_name, crm_cd, frequency 
-    FROM (
+    WITH FilteredCrimes AS (
+        SELECT Area.area_id, Crime_report.crm_cd, crm_cd_2, crm_cd_3, crm_cd_4
+        FROM Crime_report
+        JOIN Reporting_district ON Crime_report.area_id = Reporting_district.area_id
+        JOIN Area ON Reporting_district.area_id = Area.area_id
+        JOIN Crime_code ON Crime_report.crm_cd = Crime_code.crm_cd_id
+        WHERE date_rptd = %s AND Crime_code.crm_cd != -1 
+    ),
+    FlattenedCrimes AS (
         SELECT 
-            a.area_name,
-            ct.crm_cd,
-            COUNT(*) AS frequency,
-            RANK() OVER (PARTITION BY a.area_name ORDER BY COUNT(*) DESC, ct.crm_cd) AS rank
-        FROM crime_report cr
-        JOIN crime_incident_crime_code cicc ON cr.dr_no = cicc.dr_no
-        JOIN crime_type ct ON cicc.crm_cd = ct.crm_cd
-        JOIN area a ON cr.area_area_id = a.area_id
-        GROUP BY a.area_name, ct.crm_cd
-    ) AS ranked_crimes
-    WHERE rank = 1
-    ORDER BY frequency DESC;
+            area_id,
+            FilteredCrimes.crm_cd AS crime_code
+        FROM FilteredCrimes
+        UNION ALL
+        SELECT 
+            area_id,
+            FilteredCrimes.crm_cd_2 AS crime_code
+        FROM FilteredCrimes
+        UNION ALL
+        SELECT 
+            area_id,
+            FilteredCrimes.crm_cd_3 AS crime_code
+        FROM FilteredCrimes
+        UNION ALL
+        SELECT 
+            area_id,
+            crm_cd_4 AS crime_code
+        FROM FilteredCrimes
+    ),
+    CrimeCounts AS (
+        SELECT 
+            area_id,
+            crime_code,
+            COUNT(*) AS crime_count
+        FROM FlattenedCrimes
+        GROUP BY area_id, crime_code
+    ),
+    MostCommonCrimes AS (
+        SELECT 
+            area_id,
+            crime_code,
+            crime_count,
+            RANK() OVER (PARTITION BY area_id ORDER BY crime_count DESC) AS rank
+        FROM CrimeCounts
+    )
+    SELECT 
+        ---area_name,
+        MostCommonCrimes.area_id,
+        crime_code,
+        Crime_code.crm_cd_desc,
+        crime_count
+    FROM MostCommonCrimes, Crime_code
+   WHERE Crime_code.crm_cd = MostCommonCrimes.crime_code AND crime_code = MostCommonCrimes.crime_code ;
+"""
 
-
-    """
+    print("Date is ", specific_date)   
+    specific_date = '2022-11-20' 
+    cursor = connection.cursor()  # Use RealDictCursor for dict-like rows
+    cursor.execute(query, (specific_date,))
+    reports = cursor.fetchall()
     
-    results = execute_query(connection, query)
-    print("Query 2: Most common crime per area on the specific date:")
-    #IDIOTIC WAY TO PRINT ONLY THE FIRST ROW
-    for row in results:
-        print(f"Area: {row[0]}\t, Crime Code: \t{row[1]}\t, Frequency: {row[2]}")
-        break
+    
+    print("Query 3: Most common crime code within bounding box on the specific date:")
+    for row in reports:
+        print(f"Crime Code: {row[0]}, Code: {row[1]}, Frequency: {row[2]}")
+        
+
+    
+    # print("Most Common Crime per Area on Specific Date:")
+    # for report in reports:
+    #     print("Area id : {report[0]}, Crime Code: {report[1]}, Count: {report[2]}")
+    
+    # verify_query = """
+    # SELECT area_id, crm_cd, crm_cd_2, crm_cd_3, crm_cd_4
+    # FROM Crime_Report
+    # WHERE date_rptd = %s
+    # """
+    
+    # cursor.execute(verify_query, (specific_date,))
+    # area_reports = cursor.fetchall()
+    
+    # report = execute_query(connection, query, (specific_date,))
+    # print("Area Reports (area_id, crm_cd, crm_cd_2, crm_cd_3, crm_cd_4):")
+    # for row in area_reports:
+    #     print("Area id: {row[0]}, Crime Codes: {row[1]}, {row[2]}, {row[3]}, {row[4]}")
+    
+
+    
+    
+    
+    # results = execute_query(connection, query)
+    # print("Query 2: Most common crime per area on the specific date:")
+    # #IDIOTIC WAY TO PRINT ONLY THE FIRST ROW
+    # for row in results:
+    #     print(f"Area: {row[0]}\t, Crime Code: \t{row[1]}\t, Frequency: {row[2]}")
+    #     break
 
 # Query 5 - Most Common Crime Code Within Bounding Box on Specific Date
 def most_common_crime_cd_bounding_box(connection, specific_date, min_lat, max_lat, min_lon, max_lon):
@@ -77,7 +148,7 @@ def most_common_crime_cd_bounding_box(connection, specific_date, min_lat, max_la
             RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
         FROM crime_report cr
         JOIN crime_incident_crime_code cicc ON cr.dr_no = cicc.dr_no
-        JOIN crime_type ct ON cicc.crm_cd = ct.crm_cd
+        JOIN Crime_code ct ON cicc.crm_cd = ct.crm_cd
         JOIN crime_location cl ON cr.crime_location_location = cl.location
         WHERE cr.crime_chronicle_date_occ = '{specific_date}' 
           AND cl.lat BETWEEN {min_lat} AND {max_lat}     
@@ -91,7 +162,7 @@ def most_common_crime_cd_bounding_box(connection, specific_date, min_lat, max_la
     for row in results:
         print(f"Crime Code: {row[0]}, Frequency: {row[1]}")
         
-        
+
 
 def get_earliest_and_latest_dates(connection):
     query = """
@@ -104,7 +175,7 @@ def get_earliest_and_latest_dates(connection):
     for row in results:
         print(f"Earliest Date: {row[0]}, Latest Date: {row[1]}")
         
-    
+
     
         
 # Query 7 -problems with the query
@@ -265,17 +336,17 @@ def areas_with_multiple_reports_on_two_crimes(connection, crime1, crime2):
         SELECT 
             a.area_name,
             cr.crime_chronicle_date_occ AS report_date,
-            ct.crm_cd_desc AS crime_type,
+            ct.crm_cd_desc AS Crime_code,
             COUNT(*) AS report_count
         FROM crime_report cr
         JOIN crime_incident_crime_code cicc ON cr.dr_no = cicc.dr_no
-        JOIN crime_type ct ON cicc.crm_cd = ct.crm_cd
+        JOIN Crime_code ct ON cicc.crm_cd = ct.crm_cd
         JOIN area a ON cr.area_area_id = a.area_id
         WHERE ct.crm_cd_desc IN ('{crime1}', '{crime2}')
         GROUP BY a.area_name, cr.crime_chronicle_date_occ, ct.crm_cd_desc
     ) AS crime_counts
     GROUP BY area_name, report_date
-    HAVING COUNT(DISTINCT crime_type) = 2 
+    HAVING COUNT(DISTINCT Crime_code) = 2 
        AND MIN(report_count) > 1
     ORDER BY area_name, report_date;
     """
@@ -286,11 +357,11 @@ def areas_with_multiple_reports_on_two_crimes(connection, crime1, crime2):
         print(f"Area: {row[0]}, Report Date: {row[1]}")
         
 
-def list_all_crime_types_by_frequency(connection):
+def list_all_Crime_codes_by_frequency(connection):
     query = """
     SELECT crm_cd_desc, COUNT(*) AS frequency
     FROM crime_incident_crime_code cicc
-    JOIN crime_type ct ON cicc.crm_cd = ct.crm_cd
+    JOIN Crime_code ct ON cicc.crm_cd = ct.crm_cd
     GROUP BY crm_cd_desc
     ORDER BY frequency DESC;
     """
