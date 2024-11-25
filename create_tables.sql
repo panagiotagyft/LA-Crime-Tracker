@@ -47,13 +47,14 @@ CREATE TABLE IF NOT EXISTS Crime_report (
   status_code VARCHAR(10) NOT NULL REFERENCES Status(status_code),
   premis_cd INTEGER NOT NULL REFERENCES Premises(premis_cd),
   area_id INTEGER NOT NULL REFERENCES Area(area_id),
+  rpt_dist_no INTEGER NOT NULL,
   location_id INTEGER REFERENCES Crime_Location(location_id),
   mocodes VARCHAR(50),
   weapon_cd INTEGER REFERENCES Weapon(weapon_cd),
   crm_cd INTEGER NOT NULL REFERENCES Crime_code(crm_cd_id),
   crm_cd_2 INTEGER REFERENCES Crime_code(crm_cd_id),
-  crm_cd_3 BIGINT REFERENCES Crime_code(crm_cd_id),
-  crm_cd_4 BIGINT REFERENCES Crime_code(crm_cd_id)
+  crm_cd_3 INTEGER REFERENCES Crime_code(crm_cd_id),
+  crm_cd_4 INTEGER REFERENCES Crime_code(crm_cd_id)
 );
 --------------------------------------
 CREATE TABLE IF NOT EXISTS Victim (

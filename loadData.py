@@ -10,7 +10,7 @@ DB_HOST = 'localhost'
 DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112.csv'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112_10k.csv'
 sql_commands = 'create_tables.sql'
 
 # Connect to the PostgreSQL database

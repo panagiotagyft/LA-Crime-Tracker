@@ -81,7 +81,7 @@ sql="""
         area_name,
         COUNT(*) AS total_crimes
     FROM crime_report 
-    INNER JOIN area ON are.area_id = crime_report.area_id
+    INNER JOIN area ON area.area_id = crime_report.area_id
     WHERE date_rptd BETWEEN %s AND %s
     GROUP BY area_name
     ORDER BY total_crimes DESC
@@ -96,11 +96,11 @@ for row in results:
 print()
 
 sql="""
-    SELECT rpt_dist_no,
+    SELECT area_id,
            COUNT(*) AS total_crimes
     FROM crime_report 
     WHERE date_rptd BETWEEN %s AND %s
-    GROUP BY rpt_dist_no
+    GROUP BY area_id
     ORDER BY total_crimes DESC
     LIMIT 5;
 """
@@ -115,10 +115,6 @@ print()
 
 
 
-cursor.close()
-conn.close()
-exit()
-
 
 # --------------------------------------------------------------------------------------------
 # -- 8: Find the second most common crime that has co-occurred with a particular crime for a  
@@ -131,9 +127,9 @@ end_date =  '2025-10-16'
 sql="""
     SELECT report.crm_cd AS snd_crime, COUNT(report.crm_cd) as frequency
     FROM crime_report AS report
-    WHERE report.crime_type_crm_cd <> %s AND 
+    WHERE report.crm_cd <> %s AND 
           (report.timestamp_id) IN  
-                                  ( SELECT Timestamp.time_stamp_id
+                                  ( SELECT time.timestamp_id
                                     FROM Crime_report AS report
                                     JOIN Timestamp AS time ON report.timestamp_id = time.timestamp_id
                                     WHERE report.crm_cd = %s AND 
@@ -162,11 +158,10 @@ sql = """
         SELECT area_name, Timestamp.date_occ AS date
         FROM crime_report 
         JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
-        INNER JOIN area ON area_id = area_id
-        WHERE crime_type_crm_cd  = %s  
+        INNER JOIN Area ON Area.area_id = crime_report.area_id
+        WHERE crm_cd  = %s  
         GROUP BY area_name, date
     )
-
     -- Final query to find the longest time gap without the specific crime
     SELECT a1.area_name, 
         a1.date AS start_date,  -- Start of the gap period
@@ -189,17 +184,17 @@ print()
 c = 954
 sql="""
     WITH rpt_dist_dates AS (
-        SELECT rpt_dist_no, Timestamp.date_occ AS date
+        SELECT area_id, Timestamp.date_occ AS date
         FROM crime_report
         JOIN Timestamp ON Timestamp.timestamp_id = crime_report.timestamp_id
         WHERE crm_cd  = %s  
-        GROUP BY rpt_dist_no, date
+        GROUP BY area_id, date
     )
 
-    SELECT a1.rpt_dist_no, a1.date AS start_date,  MIN(a2.date) AS end_date, MIN(a2.date) - a1.date AS gap  
+    SELECT a1.area_id, a1.date AS start_date,  MIN(a2.date) AS end_date, MIN(a2.date) - a1.date AS gap  
     FROM rpt_dist_dates AS a1
-    INNER JOIN rpt_dist_dates AS a2 ON a1.rpt_dist_no = a2.rpt_dist_no AND a1.date < a2.date  
-    GROUP BY a1.rpt_dist_no, a1.date
+    INNER JOIN rpt_dist_dates AS a2 ON a1.area_id = a2.area_id AND a1.date < a2.date  
+    GROUP BY a1.area_id, a1.date
     ORDER BY gap DESC  
     LIMIT 1;
 """
@@ -276,7 +271,6 @@ sql="""
         JOIN crime_report AS report ON crm_cd=crime_cd AND area_id = area_id
         JOIN Timestamp AS time ON time.time_stamp_id = report.timestamp_id
         WHERE date_occ = date AND time_occ BETWEEN %s AND %s
-        JOIN weapon ON weapon_cd=weapon_cd
         )
     SELECT DISTINCT report.dr_no, area_name, crm_cd_desc, weapon_desc
     FROM DR_NO_LIST AS dr
@@ -286,7 +280,7 @@ sql="""
     JOIN weapon ON weapon_cd=weapon_cd
     
 """
-cursor.execute(sql, (start_time,end_time, N))
+cursor.execute(sql, (start_time,end_time, N, start_time, end_time))
 
 # Fetch results
 results = cursor.fetchall()
@@ -296,3 +290,6 @@ print()
 
 cursor.close()
 conn.close()
+
+
+exit()
