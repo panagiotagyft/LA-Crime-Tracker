@@ -63,6 +63,17 @@ export default function Updates() {
         StatusDesc: false,
     });
 
+    const [isCustomCode, setIsCustomCode] = useState({
+        Area: false,
+        Crime_code: false,
+        Premises: false,
+        Weapon: false,
+        Status: false,
+        RptDistNo: false,
+        Mocodes: false
+        
+    });
+
     useEffect(() => {
         // Fetch dropdown options from Django backend
         axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
@@ -101,7 +112,6 @@ export default function Updates() {
         }
     };
 
-
     const handleCodeChange = (e, type) => {
         const codeValue = e.target.value;
 
@@ -124,53 +134,75 @@ export default function Updates() {
         const codeKey = codeKeyMap[type];
         const descKey = descKeyMap[type];
 
-        setFormData((prevData) => ({
-            ...prevData,
-            [codeKey]: codeValue,
-            [descKey]: "", // Reset description
-        }));
-        // Record changes.
-        setChangesLog((prevLog) => ({
-            ...prevLog,
-            [codeKey]: codeValue,
-        }));
+        if (codeValue === "custom") {
+            // User selected to enter a custom code and description
+            setIsCustomCode((prev) => ({
+                ...prev,
+                [type]: true,
+            }));
+            setFormData((prevData) => ({
+                ...prevData,
+                [codeKey]: '', // Clear code field to allow user input
+                [descKey]: '', // Clear description field
+            }));
+            setEditableFields((prevFields) => ({
+                ...prevFields,
+                [`${type}Desc`]: true,
+            }));
+        } else {
+            setIsCustomCode((prev) => ({
+                ...prev,
+                [type]: false,
+            }));
+            // Update formData with the selected code
+            setFormData((prevData) => ({
+                ...prevData,
+                [codeKey]: codeValue,
+                [descKey]: '', // Reset description
+            }));
+            // Record changes.
+            setChangesLog((prevLog) => ({
+                ...prevLog,
+                [codeKey]: codeValue,
+            }));
 
-        if (codeValue) {
-            axios.get("http://127.0.0.1:8000/api/db_manager/get-code-description/", {
-                params: { type, code: codeValue },
-            })
-            .then((response) => {
-                setFormData((prevData) => ({
-                    ...prevData,
-                    [descKey]: response.data.description,
-                }));
-                // Record changes.
-                setChangesLog((prevLog) => ({
-                    ...prevLog,
-                    [descKey]: response.data.description,
-                }));
+            if (codeValue) {
+                axios.get("http://127.0.0.1:8000/api/db_manager/get-code-description/", {
+                    params: { type, code: codeValue },
+                })
+                .then((response) => {
+                    setFormData((prevData) => ({
+                        ...prevData,
+                        [descKey]: response.data.description,
+                    }));
+                    // Record changes.
+                    setChangesLog((prevLog) => ({
+                        ...prevLog,
+                        [descKey]: response.data.description,
+                    }));
+                    setEditableFields((prevFields) => ({
+                        ...prevFields,
+                        [`${type}Desc`]: false,
+                    }));
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 404) {
+                        setFormData((prevData) => ({
+                            ...prevData,
+                            [descKey]: "",
+                        }));
+                        setEditableFields((prevFields) => ({
+                            ...prevFields,
+                            [`${type}Desc`]: true,
+                        }));
+                    }
+                });
+            } else {
                 setEditableFields((prevFields) => ({
                     ...prevFields,
                     [`${type}Desc`]: false,
                 }));
-            })
-            .catch((error) => {
-                if (error.response && error.response.status === 404) {
-                    setFormData((prevData) => ({
-                        ...prevData,
-                        [descKey]: "",
-                    }));
-                    setEditableFields((prevFields) => ({
-                        ...prevFields,
-                        [`${type}Desc`]: true,
-                    }));
-                }
-            });
-        } else {
-            setEditableFields((prevFields) => ({
-                ...prevFields,
-                [`${type}Desc`]: false,
-            }));
+            }
         }
     };
 
@@ -203,8 +235,6 @@ export default function Updates() {
             });
     };
     
-
-
 
     return (
         <div className="updates">
@@ -262,7 +292,7 @@ export default function Updates() {
                         <select
                             id="AreaCode"
                             name="AreaCode"
-                            value={formData.AreaCode}
+                            value={isCustomCode.Area ? "custom" : formData.AreaCode}
                             onChange={(e) => {
                                 const areaCode = e.target.value;
                                 handleCodeChange(e, "Area");
@@ -274,91 +304,92 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.AreaCode === "custom" && (
-                        <input
-                            type="text"
-                            name="CustomAreaCode"
-                            placeholder="Enter new Area Code"
-                            value={formData.AreaCode}
-                            onChange={(e) => {
-                                const areaCode = e.target.value;
-                                handleChange(e);
-                                // if (formData.DateRptd) {generateDRNO(areaCode, formData.DateRptd);}
-                            }}
-                        />
+                        {isCustomCode.Area && (
+                            <input
+                                type="text"
+                                name="AreaCode"
+                                placeholder="Enter new Area Code"
+                                value={formData.AreaCode}
+                                onChange={handleChange}
+                            />
                         )}
                     </div>
  
+                    {/* --- Area Name --- */}
                     <div className="formField">
-                        <label htmlFor="AreaName">Area Name</label>
-                        {editableFields.AreaDesc? (
-                        <input
-                            type="text"
-                            id="AreaNameCustom"
-                            name="AreaNameCustom"
-                            placeholder="Enter new Area Name"
-                            value={formData.AreaDesc}
-                            onChange={handleChange}
-                        />
+                        <label htmlFor="AreaDesc">Area Name</label>
+                        {(editableFields.AreaDesc || isCustomCode.Area) ? (
+                            <input
+                                type="text"
+                                id="AreaDesc"
+                                name="AreaDesc"
+                                placeholder="Enter new Area Name"
+                                value={formData.AreaDesc}
+                                onChange={handleChange}
+                            />
                         ) : (
-                        <input
-                            type="text"
-                            id="AreaName"
-                            name="AreaName"
-                            value={formData.AreaDesc}
-                            readOnly
-                        />
+                            <input
+                                type="text"
+                                id="AreaDesc"
+                                name="AreaDesc"
+                                value={formData.AreaDesc}
+                                readOnly
+                            />
                         )}
                     </div>
                     </div>
                             
-                    {/* Dropdown -> Crime Code */}
                     <div className="formRow">
-                    <div className="formField">
-                        <label htmlFor="CrmCd">Crime Code</label>
+                        {/* --- Crime Code --- */}
+                        <div className="formField">
+                            <label htmlFor="CrmCd">Crime Code</label>
                             <select
-                                id="CrmCd"
-                                name="CrmCd"
-                                value={formData.CrmCd}
+                                id="CrmCdSelect"
+                                name="CrmCdSelect"
+                                value={isCustomCode.Crime_code ? "custom" : formData.CrmCd}
                                 onChange={(e) => handleCodeChange(e, "Crime_code")}
                             >
-                            <option value="">Select Crime Code</option>
-                            {options.crime_codes.map((crime, index) => (
-                                <option key={index} value={crime}>{crime}</option>
-                            ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-                        {formData.CrmCd === "custom" && (
-                        <input
-                            type="text"
-                            name="CustomCrimeCode"
-                            placeholder="Enter new Crime Code"
-                            value={formData.CrmCd}
-                            onChange={handleChange}
-                        />
-                        )}
-                    </div>
-                    <div className="formField">
-                        <label htmlFor="CrmCdDesc">Crime Description</label>
-                        {editableFields.Crime_codeDesc ? (
-                            <input
-                                type="text"
-                                id="CrmCdDescCustom"
-                                name="CrmCdDescCustom"
-                                placeholder="Enter new description"
-                                value={formData.Crime_codeDesc}
-                                onChange={handleChange}
-                            />
+                                <option value="">Select Crime Code</option>
+                                {options.crime_codes.map((crime, index) => (
+                                    <option key={index} value={crime}>{crime}</option>
+                                ))}
+                                <option value="custom">Other (Add New)</option>
+                            </select>
+                            {isCustomCode.Crime_code && (
+                                <input
+                                    type="text"
+                                    name="CrmCd"
+                                    placeholder="Enter new Crime Code"
+                                    value={formData.CrmCd}
+                                    onChange={handleChange}
+                                />
+                            )}
+                        </div>
+
+                        {/* --- Crime Description --- */}
+                        <div className="formField">
+                            <label htmlFor="Crime_codeDesc">Crime Description</label>
+                            {(editableFields.Crime_codeDesc || isCustomCode.Crime_code) ? (
+                                <input
+                                    type="text"
+                                    id="Crime_codeDesc"
+                                    name="Crime_codeDesc"
+                                    placeholder="Enter new description"
+                                    value={formData.Crime_codeDesc}
+                                    onChange={handleChange}
+                                />
                             ) : (
-                            <input
-                                type="text"
-                                id="CrmCdDesc"
-                                name="CrmCdDesc"
-                                value={formData.Crime_codeDesc}
-                                readOnly
-                            />
+                                <input
+                                    type="text"
+                                    id="Crime_codeDesc"
+                                    name="Crime_codeDesc"
+                                    value={formData.Crime_codeDesc}
+                                    readOnly
+                                />
                             )}
                     </div>
+                    
+
                     <div className="formField">
                         <label htmlFor="CrmCd2">Crm Cd 2</label>
                         <select
@@ -434,102 +465,106 @@ export default function Updates() {
                     </div>
                     
                     <div className="formRow">
-                     <div className="formField">
-                        <label htmlFor="PremisCd">Premis Cd</label>
-                        <select
-                            id="PremisCd"
-                            name="PremisCd"
-                            value={formData.PremisCd}
-                             onChange={(e) => handleCodeChange(e, "Premises")}
-                        >
-                        <option value="">Select Premis Cd</option>
-                        {options.premises.map((code, index) => (
-                            <option key={index} value={code}>{code}</option>
-                        ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-                        {formData.PremisCd === "custom" && (
-                        <input
-                            type="text"
-                            name="CustomPremisCd"
-                            placeholder="Enter new Premis Cd"
-                            value={formData.PremisCd}
-                            onChange={handleChange}
-                        />
-                        )}
-                    </div>
- 
-                    <div className="formField">
-                        <label htmlFor="PremisDesc">Premis Desc</label>
-                        {editableFields.PremisesDesc ? (
-                        <input
-                            type="text"
-                            id="PremisDescCustom"
-                            name="PremisDescCustom"
-                            placeholder="Enter new Premis Desc"
-                            value={formData.PremisesDesc}
-                            onChange={handleChange}
-                        />
-                        ) : (
-                        <input
-                            type="text"
-                            id="PremisDesc"
-                            name="PremisDesc"
-                            value={formData.PremisesDesc}
-                            readOnly
-                        />
-                        )}
-                    </div>
+                        <div className="formField">
+                            <label htmlFor="PremisCd">Premis Cd</label>
+                            <select
+                                id="PremisCdSelect"
+                                name="PremisCdSelect"
+                                value={isCustomCode.Premises ? "custom" : formData.PremisCd}
+                                onChange={(e) => handleCodeChange(e, "Premises")}
+                            >
+                                <option value="">Select Premis Cd</option>
+                                {options.premises.map((code, index) => (
+                                    <option key={index} value={code}>{code}</option>
+                                ))}
+                                <option value="custom">Other (Add New)</option>
+                            </select>
+                            {isCustomCode.Premises && (
+                                <input
+                                    type="text"
+                                    name="PremisCd"
+                                    placeholder="Enter new Premis Cd"
+                                    value={formData.PremisCd}
+                                    onChange={handleChange}
+                                />
+                            )}
+                        </div>
+
+                        <div className="formField">
+                            <label htmlFor="PremisesDesc">Premis Desc</label>
+                            {(editableFields.PremisesDesc || isCustomCode.Premises) ? (
+                                <input
+                                    type="text"
+                                    id="PremisesDesc"
+                                    name="PremisesDesc"
+                                    placeholder="Enter new Premis Desc"
+                                    value={formData.PremisesDesc}
+                                    onChange={handleChange}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    id="PremisesDesc"
+                                    name="PremisesDesc"
+                                    value={formData.PremisesDesc}
+                                    readOnly
+                                />
+                            )}
+                        </div>
                     </div>
 
+
                     <div className="formRow">
-                      <div className="formField">
-                        <label htmlFor="WeaponUsedCd">Weapon Used Cd</label>
-                        <select
-                            id="WeaponUsedCd"
-                            name="WeaponUsedCd"
-                            value={formData.WeaponUsedCd}
-                             onChange={(e) => handleCodeChange(e, "Weapon")}
-                        >
-                        <option value="">Select Weapon Used Cd</option>
-                        {options.weapons.map((code, index) => (
-                            <option key={index} value={code}>{code}</option>
-                        ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-                        {formData.WeaponUsedCd === "custom" && (
-                        <input
-                            type="text"
-                            name="CustomWeaponUsedCd"
-                            placeholder="Enter new Weapon Used Cd"
-                            value={formData.WeaponUsedCd}
-                            onChange={handleChange}
-                        />
-                        )}
+                        {/* --- Weapon Used Code --- */}
+                        <div className="formField">
+                            <label htmlFor="WeaponUsedCd">Weapon Used Code</label>
+                            <select
+                                id="WeaponUsedCdSelect"
+                                name="WeaponUsedCdSelect"
+                                value={isCustomCode.Weapon ? "custom" : formData.WeaponUsedCd}
+                                onChange={(e) => handleCodeChange(e, "Weapon")}
+                            >
+                                <option value="">Select Weapon Used Code</option>
+                                {options.weapons.map((code, index) => (
+                                    <option key={index} value={code}>{code}</option>
+                                ))}
+                                <option value="custom">Other (Add New)</option>
+                            </select>
+                            {isCustomCode.Weapon && (
+                                <input
+                                    type="text"
+                                    name="WeaponUsedCd"
+                                    placeholder="Enter new Weapon Used Code"
+                                    value={formData.WeaponUsedCd}
+                                    onChange={handleChange}
+                                />
+                            )}
+                        </div>
+
+                        {/* --- Weapon Description --- */}
+                        <div className="formField">
+                            <label htmlFor="WeaponDesc">Weapon Description</label>
+                            {(editableFields.WeaponDesc || isCustomCode.Weapon) ? (
+                                <input
+                                    type="text"
+                                    id="WeaponDesc"
+                                    name="WeaponDesc"
+                                    placeholder="Enter new Weapon Description"
+                                    value={formData.WeaponDesc}
+                                    onChange={handleChange}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    id="WeaponDesc"
+                                    name="WeaponDesc"
+                                    value={formData.WeaponDesc}
+                                    readOnly
+                                />
+                            )}
+                        </div>
                     </div>
- 
-                    <div className="formField">
-                        <label htmlFor="WeaponDesc">Weapon Desc</label>
-                        {editableFields.WeaponDesc ? (
-                        <input
-                            type="text"
-                            id="WeaponDescCustom"
-                            name="WeaponDescCustom"
-                            placeholder="Enter new Weapon Desc"
-                            value={formData.WeaponDesc}
-                            onChange={handleChange}
-                        />
-                        ) : (
-                        <input
-                            type="text"
-                            id="WeaponDesc"
-                            name="WeaponDesc"
-                            value={formData.WeaponDesc}
-                            readOnly
-                        />
-                        )}
-                    </div>
-                    </div>
+
                     <div className="formRow">
                     <div className="formField">
                         <label htmlFor="Location">Location</label>
@@ -576,54 +611,56 @@ export default function Updates() {
                     </div>
 
                     <div className="formRow">
-                      <div className="formField">
-                        <label htmlFor="Status">Status</label>
-                        <select
-                            id="Status"
-                            name="Status"
-                            value={formData.Status}
-                             onChange={(e) => handleCodeChange(e, "Status")}
-                        >
-                        <option value="">Select Status</option>
-                        {options.statuses.map((code, index) => (
-                            <option key={index} value={code}>{code}</option>
-                        ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-                        {formData.Status === "custom" && (
-                        <input
-                            type="text"
-                            name="CustomStatus"
-                            placeholder="Enter new Status"
-                            value={formData.Status}
-                            onChange={handleChange}
-                        />
-                        )}
+                        {/* --- Status Code --- */}
+                        <div className="formField">
+                            <label htmlFor="Status">Status</label>
+                            <select
+                                id="StatusSelect"
+                                name="StatusSelect"
+                                value={isCustomCode.Status ? "custom" : formData.Status}
+                                onChange={(e) => handleCodeChange(e, "Status")}
+                            >
+                                <option value="">Select Status</option>
+                                {options.statuses.map((code, index) => (
+                                    <option key={index} value={code}>{code}</option>
+                                ))}
+                                <option value="custom">Other (Add New)</option>
+                            </select>
+                            {isCustomCode.Status && (
+                                <input
+                                    type="text"
+                                    name="Status"
+                                    placeholder="Enter new Status"
+                                    value={formData.Status}
+                                    onChange={handleChange}
+                                />
+                            )}
+                        </div>
+
+                        {/* --- Status Description --- */}
+                        <div className="formField">
+                            <label htmlFor="StatusDesc">Status Description</label>
+                            {(editableFields.StatusDesc || isCustomCode.Status) ? (
+                                <input
+                                    type="text"
+                                    id="StatusDesc"
+                                    name="StatusDesc"
+                                    placeholder="Enter new Status Description"
+                                    value={formData.StatusDesc}
+                                    onChange={handleChange}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    id="StatusDesc"
+                                    name="StatusDesc"
+                                    value={formData.StatusDesc}
+                                    readOnly
+                                />
+                            )}
+                        </div>
                     </div>
- 
-                    {/* Αυτόματο ή custom Status Desc */}
-                    <div className="formField">
-                        <label htmlFor="StatusDesc">Status Desc</label>
-                        {editableFields.StatusDesc ? (
-                        <input
-                            type="text"
-                            id="StatusDescCustom"
-                            name="StatusDescCustom"
-                            placeholder="Enter new Status Desc"
-                            value={formData.StatusDesc}
-                            onChange={handleChange}
-                        />
-                        ) : (
-                        <input
-                            type="text"
-                            id="StatusDesc"
-                            name="StatusDesc"
-                            value={formData.StatusDesc}
-                            readOnly
-                        />
-                        )}
-                    </div>
-                    </div>
+
 
                     <div className="formRow">
                     <div className="formField">
@@ -631,7 +668,8 @@ export default function Updates() {
                         <select
                             id="RptDistNo"
                             name="RptDistNo"
-                            value={formData.RptDistNo}
+                                value={formData.RptDistNo}
+                               
                             onChange={handleChange}
                         >
                         <option value="">Select Rpt Dist No</option>

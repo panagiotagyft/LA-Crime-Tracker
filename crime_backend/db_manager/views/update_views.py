@@ -1,6 +1,7 @@
 from django.db import connection 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from datetime import datetime
 
 class UpdateView(APIView):
     def post(self, request):
@@ -94,6 +95,12 @@ class UpdateView(APIView):
         try:
             with connection.cursor() as cursor:
 
+                def parse_date(date_str):
+                    return datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None
+
+                def parse_time(time_str):
+                    return datetime.strptime(time_str, '%H:%M').time() if time_str else None
+
                 query = """ 
                     SELECT dr_no, date_rptd, timestamp_id, status_code, 
                            premis_cd, rpt_dist_no, area_id, location_id, 
@@ -110,16 +117,17 @@ class UpdateView(APIView):
                 print("line110")
                 total_paramas_crm_rpt = {}
                 for table, fields in tables_data.items():
+                    print(f"line113 {fields}")
 
-                    conditions = []
-                    for field in fields:
-                        for key in field.keys():
-                            conditions.append(f"{correctedField[key]} = %s")
+                    if table == "Crime_Location" or table == "Victim":
+                        conditions = []
+                        for field in fields:
+                            for key in field.keys():
+                                conditions.append(f"{correctedField[key]} = %s")
 
-                    set_clause = " AND ".join(conditions)
+                        set_clause = ", ".join(conditions)
 
 
-                    print(f"line116: {set_clause}")
                     if table == "Area":
                         cursor.execute("""
                             SELECT COUNT(*) FROM Area WHERE area_id = %s
@@ -158,152 +166,160 @@ class UpdateView(APIView):
                         print("line143")
 
                     elif table == "Status":
-                            cursor.execute("""
-                                SELECT COUNT(*) FROM Status WHERE status_code = %s
-                            """, (fields_to_update["Status"],))
-                            exists = cursor.fetchone()[0]
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Status WHERE status_code = %s
+                        """, (fields_to_update["Status"],))
+                        exists = cursor.fetchone()[0]
 
-                            if exists == 0: 
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
-                                cursor.execute("""
-                                    INSERT INTO Status (status_code, status_desc)
-                                    VALUES (%s, %s)
-                                """, params)
-                                connection.commit()
-
-                            total_paramas_crm_rpt[correctedField["Status"]] = fields_to_update["Status"]
-                            print("line160")
-
-
-                    elif table == "Premises":
-                            cursor.execute("""
-                                SELECT COUNT(*) FROM Premises WHERE premis_cd = %s
-                            """, (fields_to_update["PremisCd"],))
-                            exists = cursor.fetchone()[0]
-
-                            if exists == 0: 
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
-                                cursor.execute("""
-                                    INSERT INTO Premises (premis_cd, premis_desc)
-                                    VALUES (%s, %s)
-                                """, params)
-                                connection.commit()
-
-                            total_paramas_crm_rpt[correctedField["PremisCd"]] = fields_to_update["PremisCd"]
-                            print("line178")
-
-                    elif table == "Crime_code":
-                            cursor.execute("""
-                                SELECT COUNT(*) FROM Crime_code WHERE crm_cd = %s
-                            """, (fields_to_update["CrmCd"],))
-                            exists = cursor.fetchone()[0]
-
-                            if exists == 0: 
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
-                                cursor.execute("""
-                                    INSERT INTO Crime_code (crm_cd, crm_cd_desc)
-                                    VALUES (%s, %s)
-                                """, params)
-                                connection.commit()
-
-                            cursor.execute("""
-                                SELECT crm_cd_id FROM Crime_code WHERE crm_cd = %s
-                            """, (fields_to_update["CrmCd"],))
-                            crm_cd_id = cursor.fetchone()[0]
-                            
-                            total_paramas_crm_rpt[correctedField["CrmCd"]] = fields_to_update["CrmCd"]
-                            print("line200")
-
-                    elif table == "Weapon":
-                            cursor.execute("""
-                                SELECT COUNT(*) FROM Weapon WHERE weapon_cd = %s
-                            """, (fields_to_update["WeaponUsedCd"],))
-                            exists = cursor.fetchone()[0]
-
-                            if exists == 0: 
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
-                                cursor.execute("""
-                                    INSERT INTO Weapon (weapon_cd, weapon_desc)
-                                    VALUES (%s, %s)
-                                """, params)
-                                connection.commit()
-
-                            total_paramas_crm_rpt[correctedField["WeaponUsedCd"]] = fields_to_update["WeaponUsedCd"]
-                            print("line217")
-
-                    elif table == "Timestamp":
+                        if exists == 0: 
                             params = []
                             for field in fields:
                                 params += [fields_to_update[key] for key in field.keys()]
-                            if len(params) == 1:
-                                key = list(field.keys())[0]
+                            cursor.execute("""
+                                INSERT INTO Status (status_code, status_desc)
+                                VALUES (%s, %s)
+                            """, params)
+                            connection.commit()
 
-                                cursor.execute("""
-                                    SELECT date_occ, time_occ FROM Timestamp WHERE timestamp_id = %s 
-                                """, (row[2],))
-                                date_occ, time_occ = cursor.fetchone()[0]
+                        total_paramas_crm_rpt[correctedField["Status"]] = fields_to_update["Status"]
+                        print("line160")
+
+
+                    elif table == "Premises":
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Premises WHERE premis_cd = %s
+                        """, (fields_to_update["PremisCd"],))
+                        exists = cursor.fetchone()[0]
+
+                        if exists == 0: 
+                            params = []
+                            for field in fields:
+                                params += [fields_to_update[key] for key in field.keys()]
+                            cursor.execute("""
+                                INSERT INTO Premises (premis_cd, premis_desc)
+                                VALUES (%s, %s)
+                            """, params)
+                            connection.commit()
+
+                        total_paramas_crm_rpt[correctedField["PremisCd"]] = fields_to_update["PremisCd"]
+                        print("line178")
+
+                    elif table == "Crime_code":
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Crime_code WHERE crm_cd = %s
+                        """, (fields_to_update["CrmCd"],))
+                        exists = cursor.fetchone()[0]
+
+                        if exists == 0: 
+                            params = []
+                            for field in fields:
+                                params += [fields_to_update[key] for key in field.keys()]
+                            cursor.execute("""
+                                INSERT INTO Crime_code (crm_cd, crm_cd_desc)
+                                VALUES (%s, %s)
+                            """, params)
+                            connection.commit()
+
+                        cursor.execute("""
+                            SELECT crm_cd_id FROM Crime_code WHERE crm_cd = %s
+                        """, (fields_to_update["CrmCd"],))
+                        crm_cd_id = cursor.fetchone()[0]
+                            
+                        total_paramas_crm_rpt[correctedField["CrmCd"]] = crm_cd_id
+                        print("line200")
+
+                    elif table == "Weapon":
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Weapon WHERE weapon_cd = %s
+                        """, (fields_to_update["WeaponUsedCd"],))
+                        exists = cursor.fetchone()[0]
+
+                        if exists == 0: 
+                            params = []
+                            for field in fields:
+                                params += [fields_to_update[key] for key in field.keys()]
+                            cursor.execute("""
+                                INSERT INTO Weapon (weapon_cd, weapon_desc)
+                                VALUES (%s, %s)
+                            """, params)
+                            connection.commit()
+
+                        total_paramas_crm_rpt[correctedField["WeaponUsedCd"]] = fields_to_update["WeaponUsedCd"]
+                        print("line217")
+
+                    elif table == "Timestamp":
+                        params = []
+                        for field in fields:
+                            params += [fields_to_update[key] for key in field.keys()]
+                        if len(params) == 1:
+                            key = list(field.keys())[0]
+
+                            cursor.execute("""
+                                SELECT date_occ, time_occ FROM Timestamp WHERE timestamp_id = %s 
+                            """, (row[2],))
+                            date_occ, time_occ = cursor.fetchone()[0]
                                 
-                                if key == "DateOcc":
-                                    params = [fields_to_update[key], time_occ]
-                                else:
-                                    params = [date_occ, fields_to_update[key]]
+                            if key == "DateOcc":
+                                params = [parse_date(fields_to_update[key]), time_occ]
+                            else:
+                                params = [date_occ, parse_time(fields_to_update[key])]
 
                             
-                            cursor.execute("""
-                                SELECT COUNT(*) FROM Timestamp WHERE date_occ = %s AND time_occ = %s
-                            """, params)
-                            exists = cursor.fetchone()[0]
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Timestamp WHERE date_occ = %s AND time_occ = %s
+                        """, params)
+                        exists = cursor.fetchone()[0]
 
-                            if exists == 0: 
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
+                        if exists == 0: 
+                            params = []
+                            for field in fields:
+                                key = list(field.keys())[0]
 
-                                cursor.execute("""
-                                    INSERT INTO Timestamp (date_occ, time_occ)
-                                    VALUES (%s, %s)
-                                """, params)
-                                connection.commit()
+                                if key == "DateOcc": params.insert(0, parse_date(fields_to_update[key]))
+                                else:
+                                    params.append(parse_time(fields_to_update[key]))  
 
                             cursor.execute("""
-                                SELECT timestamp_id FROM Timestamp WHERE date_occ = %s AND time_occ = %s
+                                INSERT INTO Timestamp (date_occ, time_occ)
+                                VALUES (%s, %s)
                             """, params)
-                            timestamp_id = cursor.fetchone()[0]
+                            connection.commit()
 
-                            total_paramas_crm_rpt['timestamp_id'] = timestamp_id
-                            print("line254")
+                        cursor.execute("""
+                            SELECT timestamp_id FROM Timestamp WHERE date_occ = %s AND time_occ = %s
+                        """, params)
+                        timestamp_id = cursor.fetchone()[0]
 
-                            if table == "Victim":
-                                params = []
-                                for field in fields:
-                                    params += [fields_to_update[key] for key in field.keys()]
-                                params += [dr_no]
-                                cursor.execute(f"""
-                                    UPDATE Victim
-                                    SET {set_clause}
-                                    WHERE dr_no = %s
-                                """, params)
-                                print("line264")
+                        total_paramas_crm_rpt['timestamp_id'] = timestamp_id
+                        print("line254")
+
+                    elif table == "Victim":
+                        params = []
+                        for field in fields:
+                            params += [fields_to_update[key] for key in field.keys()]
+                        params.append(dr_no)   # location_id
+                        print(params)
+                        print(f"{set_clause}")
+                        sql = """
+                            UPDATE Victim
+                            SET {}
+                            WHERE dr_no = %s
+                        """.format(set_clause)
+                        cursor.execute(sql, params)
+                        print("line264")
 
 
                     elif table == "Crime_report":
+                        for field in fields:
                             for key in field.keys():
-                                
+                                print(key)
                                 if key == "CrmCd2" or key == "CrmCd3"  or key == "CrmCd4":
                                     
                                     cursor.execute("""
                                         SELECT COUNT(*) FROM Crime_code WHERE crm_cd = %s
                                     """, (fields_to_update[key],))
                                     exists = cursor.fetchone()[0]
-
+                                    print(f"test1: {exists}")
                                     if exists == 0: 
                                         params = [fields_to_update[key]]
                                         params += ["No description"]
@@ -317,27 +333,60 @@ class UpdateView(APIView):
                                         SELECT crm_cd_id FROM Crime_code WHERE crm_cd = %s
                                     """, (fields_to_update[key],))
                                     crm_cd_id = cursor.fetchone()[0]
-
+                                    print(crm_cd_id)
                                     if key == "CrmCd2": total_paramas_crm_rpt["crm_cd_2"] = crm_cd_id
                                     elif key == "CrmCd3": total_paramas_crm_rpt["crm_cd_3"] = crm_cd_id
                                     elif key == "CrmCd4": total_paramas_crm_rpt["crm_cd_4"] = crm_cd_id
-                                
+
+                                    continue
+
                                 total_paramas_crm_rpt[correctedField[key]] = fields_to_update[key]
                                 print("line296")
-                           
-                set_clause = ', '.join([f"{key} = %s" for key in total_paramas_crm_rpt.keys()])
-                params = list(total_paramas_crm_rpt.values())
-                params += [dr_no]
-                query = """ 
+
+                # Αποθήκευση των κλειδιών σε μια λίστα
+                keys = list(total_paramas_crm_rpt.keys())
+
+                # Δημιουργία της λίστας params1 με σωστούς τύπους δεδομένων
+                params1 = []
+                for key in keys:
+                    value = total_paramas_crm_rpt[key]
+                    # Ελέγξτε τον τύπο δεδομένων που αναμένεται για το πεδίο
+                    if key in ['area_id', 'premis_cd', 'crm_cd', 'weapon_cd', 'crm_cd_2', 'crm_cd_3', 'crm_cd_4', 'rpt_dist_no', 'timestamp_id']:
+                        # Μετατροπή σε ακέραιο
+                        params1.append(int(value))
+                    elif key == 'date_rptd':
+                        # Μετατροπή σε αντικείμενο ημερομηνίας (αν απαιτείται)
+                        params1.append(datetime.strptime(value, '%Y-%m-%d'))  # Ή datetime.strptime(value, '%Y-%m-%d') αν χρειάζεται
+                    else:
+                        # Διατήρηση ως συμβολοσειρά
+                        params1.append(value)
+                
+                # Προσθήκη του dr_no στο τέλος
+                params1.append(int(dr_no))
+                set_clause = ', '.join([f"{key} = %s" for key in keys])
+                print("Set Clause:", set_clause)
+                print("Parameters:", params1)
+
+                # Εκτέλεση της SQL εντολής
+                sql = f"""
                     UPDATE Crime_report
                     SET {set_clause}
                     WHERE dr_no = %s
                 """
-                cursor.execute(query, params)
-                        
+                cursor.execute(sql, params1)
+
+
+                # Εκτέλεση της SQL εντολής
+                sql = """
+                    SELECT * FROM Crime_report WHERE dr_no = %s
+                """
+                cursor.execute(sql, (dr_no,))
+                exists = cursor.fetchall()
+                # print(exists)   
+                                    
             # Αποθήκευση του log
             # (Αν έχετε κάποιο πίνακα `UpdateLog` μπορείτε να το αποθηκεύσετε εκεί)
-            print("Update Log:", changes_log)  # Ή αποθηκεύστε το σε βάση δεδομένων
+            # print("Update Log:", changes_log)  # Ή αποθηκεύστε το σε βάση δεδομένων
 
             return Response({"message": "Record updated successfully", "log": changes_log}, status=200)
         except Exception as e:

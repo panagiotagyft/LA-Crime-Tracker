@@ -133,7 +133,7 @@ class InsertView(APIView):
                         SELECT crm_cd_id FROM Crime_code WHERE crm_cd = %s
                     """, (crm_cd,))
                     crm_cd_id = cursor.fetchone()
-                    print('line268')
+                    
                     cursor.execute("""
                         SELECT COUNT(*) FROM Crime_code WHERE crm_cd = %s
                     """, (crm_cd2,))
