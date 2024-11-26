@@ -118,7 +118,7 @@ export default function Query2() {
                 />
               </div>
               <div className='crmCDquery2'>
-                <label htmlFor="crmCD">Crm Cd</label>
+                <label htmlFor="crmCD">Crime Code</label>
                 <select
                   className="crmCDquery2Input"
                   id="crmCDquery2Input"
@@ -157,8 +157,8 @@ export default function Query2() {
                     <tbody>
                       {results.map((result, index) => (
                         <tr key={index}>
-                          <td>{result.date}</td>
-                          <td>{result.report_count}</td>
+                          <td>{result["Reported Day"]}</td>
+                          <td>{result["Total number of reports"]}</td>
                         </tr>
                       ))}
                     </tbody>

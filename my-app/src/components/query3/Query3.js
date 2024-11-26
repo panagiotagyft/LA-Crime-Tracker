@@ -1,8 +1,12 @@
 import './Query3.css';
 import React, { useState } from "react";
+import axios from 'axios';
 
 export default function Query3() {
   const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
 
   const toggleFormVisibility = () => {
     setIsFormVisible((prev) => !prev);
@@ -14,9 +18,38 @@ export default function Query3() {
     setDate(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Selected Date:", date);
+    setError(null); // Καθαρισμός προηγούμενων σφαλμάτων
+
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query3/', {
+        params: { date: date },
+      });
+
+      if (response.data.message) {
+        setError(response.data.message); // Εμφάνιση μηνύματος αν δεν υπάρχουν δεδομένα
+      } else {
+        setResults(response.data); // Εμφάνιση αποτελεσμάτων
+      }
+      
+    } catch (err) {
+      setError(err.response?.data?.error || "An unexpected error occurred.");
+    }
+  };
+
+  const handleReset = () => {
+    // Καθαρισμός των πεδίων της φόρμας
+    setDate({
+      Date: "",
+    });
+    // Καθαρισμός αποτελεσμάτων
+    setResults([]);
+    // Κρύψιμο φόρμας
+    setIsFormVisible(false);
+    // Καθαρισμός σφαλμάτων
+    setError(null);
   };
 
   return (
@@ -28,17 +61,48 @@ export default function Query3() {
         <hr className='query3Line' />
         {isFormVisible && (
           <>
-            <div className='query3Middle'>
-              <form className='query3Form' onSubmit={handleSubmit}>
-                <div className='selectDate'>
+            
+            <form className='query3Form' onSubmit={handleSubmit}>
+              <div className='query3Middle'>
+              <div className='selectDate'>
                   <label htmlFor="date">Date</label>
                   <input className='dateInput' type="date" id="date" name="date" value={date} onChange={handleChange} />
                 </div>
+              </div>
+              {!results.length > 0 && (
+                <div className='query3Down'>
+                  <button type="submit" className='query3SubmitButton'>Submit</button>
+                </div>
+              )}
               </form>
-            </div>
-            <div className='query3Down'>
-              <button type="submit" className='query3SubmitButton'>Submit</button>
-            </div>
+
+            {error && <div className='query3Error'>{error}</div>}
+            {results.length > 0 && (
+              <div className='query3Results'>
+                <h4 className='query3ResultsTitle'>Results:</h4>
+                <div className="resultsTableWrapper">
+                  <table className="resultsTable">
+                    <thead>
+                      <tr>
+                        <th>Area Code</th>
+                        <th>The most frequent crime</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((result, index) => (
+                        <tr key={index}>
+                          <td>{result["Area Code"]}</td>
+                          <td>{result["The most frequent crime"]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {results.length > 0 && (
+              <button onClick={handleReset} className="query1SubmitButton">Reset</button>
+            )}
           </>
         )}
       </div>
