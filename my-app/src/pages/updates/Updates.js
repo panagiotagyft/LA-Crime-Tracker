@@ -66,12 +66,14 @@ export default function Updates() {
     const [isCustomCode, setIsCustomCode] = useState({
         Area: false,
         Crime_code: false,
+        CrmCdCustom2: false,
+        CrmCdCustom3: false,
+        CrmCdCustom4: false,
         Premises: false,
         Weapon: false,
         Status: false,
         RptDistNo: false,
         Mocodes: false
-        
     });
 
     useEffect(() => {
@@ -208,19 +210,22 @@ export default function Updates() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
-        // Update the formData.
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
         }));
+        
+        if (name === "RptDistNo" && value === "custom") {
+            setIsCustomCode((prev) => ({ ...prev, RptDistNo: true }));
+            setFormData((prevData) => ({ ...prevData, RptDistNo: "" }));
+        }
 
-        // Record changes.
-        setChangesLog((prevLog) => ({
-            ...prevLog,
-            [name]: value,
-        }));
+        if (name === "Mocodes" && value === "custom") {
+            setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
+            setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
+        }
     };
+
 
 
     const handleSubmit = (e) => {
@@ -395,8 +400,17 @@ export default function Updates() {
                         <select
                             id="CrmCd2"
                             name="CrmCd2"
-                            value={formData.CrmCd2}
-                            onChange={handleChange}
+                            value={isCustomCode.CrmCdCustom2 ? "custom" :formData.CrmCd2}   
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "custom") {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom2: true }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd2: "" }));
+                                } else {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom2: false }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd2: value }));
+                                }
+                            }}
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
@@ -404,23 +418,35 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd2 === "custom" && (
-                        <input
-                            type="text"
-                            name="CrmCd2Custom"
-                            placeholder="Enter new Crime Code"
-                            value={formData.CrmCd2}
-                            onChange={handleChange}
-                        />
+                        {isCustomCode.CrmCdCustom2 && (
+                            <input
+                                type="number"
+                                name="CrmCdCustom2"
+                                placeholder="Enter new Rpt Dist No"
+                                value={formData.CrmCd2}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormData((prevData) => ({ ...prevData, CrmCd2: value }));
+                                }}
+                            />
                         )}
                     </div>
                     <div className="formField">
                         <label htmlFor="CrmCd3">Crm Cd 3</label>
                         <select
-                        id="CrmCd3"
-                        name="CrmCd3"
-                        value={formData.CrmCd3}
-                        onChange={handleChange}
+                            id="CrmCd3"
+                            name="CrmCd3"
+                            value={isCustomCode.CrmCdCustom3 ? "custom" :formData.CrmCd3}   
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "custom") {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom3: true }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd3: "" }));
+                                } else {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom3: false }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd3: value }));
+                                }
+                            }}
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
@@ -428,23 +454,35 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd3 === "custom" && (
-                        <input
-                            type="text"
-                            name="CrmCdCustom3"
-                            placeholder="Enter new Crime Code"
-                            value={formData.CrmCd3}
-                            onChange={handleChange}
-                        />
+                        {isCustomCode.CrmCdCustom3 && (
+                            <input
+                                type="number"
+                                name="CrmCdCustom3"
+                                placeholder="Enter new Rpt Dist No"
+                                value={formData.CrmCd3}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormData((prevData) => ({ ...prevData, CrmCd3: value }));
+                                }}
+                            />
                         )}
                     </div>
                     <div className="formField">
                         <label htmlFor="CrmCd4">Crm Cd 4</label>
                         <select
-                        id="CrmCd4"
-                        name="CrmCd4"
-                        value={formData.CrmCd4}
-                        onChange={handleChange}
+                            id="CrmCd4"
+                            name="CrmCd4"
+                            value={isCustomCode.CrmCdCustom4 ? "custom" :formData.CrmCd4}   
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "custom") {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom4: true }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd4: "" }));
+                                } else {
+                                    setIsCustomCode((prev) => ({ ...prev, CrmCdCustom4: false }));
+                                    setFormData((prevData) => ({ ...prevData, CrmCd4: value }));
+                                }
+                            }}
                         >
                         <option value="">Select Crime Code</option>
                         {options.crime_codes.map((crime, index) => (
@@ -452,14 +490,17 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.CrmCd4 === "custom" && (
-                        <input
-                            type="text"
-                            name="CrmCdCustom4"
-                            placeholder="Enter new Crime Code"
-                            value={formData.CrmCd4}
-                            onChange={handleChange}
-                        />
+                        {isCustomCode.CrmCdCustom4 && (
+                            <input
+                                type="number"
+                                name="CrmCdCustom4"
+                                placeholder="Enter new Rpt Dist No"
+                                value={formData.CrmCd4}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormData((prevData) => ({ ...prevData, CrmCd4: value }));
+                                }}
+                            />
                         )}
                     </div>
                     </div>
@@ -668,9 +709,17 @@ export default function Updates() {
                         <select
                             id="RptDistNo"
                             name="RptDistNo"
-                                value={formData.RptDistNo}
-                               
-                            onChange={handleChange}
+                            value={isCustomCode.RptDistNo ? "custom" :formData.RptDistNo}   
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "custom") {
+                                    setIsCustomCode((prev) => ({ ...prev, RptDistNo: true }));
+                                    setFormData((prevData) => ({ ...prevData, RptDistNo: "" }));
+                                } else {
+                                    setIsCustomCode((prev) => ({ ...prev, RptDistNo: false }));
+                                    setFormData((prevData) => ({ ...prevData, RptDistNo: value }));
+                                }
+                            }}
                         >
                         <option value="">Select Rpt Dist No</option>
                         {options.rpt_dists.map((code, index) => (
@@ -678,14 +727,17 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.RptDistNo === "custom" && (
-                        <input
-                            type="number"
-                            name="CustomRptDistNo"
-                            placeholder="Enter new RptDistNo"
-                            value={formData.RptDistNo}
-                            onChange={handleChange}
-                        />
+                        {isCustomCode.RptDistNo && (
+                            <input
+                                type="number"
+                                name="RptDistNo"
+                                placeholder="Enter new Rpt Dist No"
+                                value={formData.RptDistNo}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormData((prevData) => ({ ...prevData, RptDistNo: value }));
+                                }}
+                            />
                         )}
                     </div>
                     <div className="formField">
@@ -693,8 +745,17 @@ export default function Updates() {
                         <select
                             id="Mocodes"
                             name="Mocodes"
-                            value={formData.Mocodes}
-                            onChange={handleChange}
+                            value={isCustomCode.Mocodes ? "custom" : formData.Mocodes}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === "custom") {
+                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
+                                    setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
+                                } else {
+                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: false }));
+                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
+                                }
+                            }}
                         >
                         <option value="">Select Mocodes</option>
                         {options.mocodes.map((code, index) => (
@@ -702,14 +763,17 @@ export default function Updates() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
-                        {formData.Mocodes === "custom" && (
-                        <input
-                            type="text"
-                            name="MocodesCustom"
-                            placeholder="Enter new Mocodes"
-                            value={formData.Mocodes}
-                            onChange={handleChange}
-                        />
+                        {isCustomCode.Mocodes && (
+                            <input
+                                type="text"
+                                name="Mocodes"
+                                placeholder="Enter new Mocodes"
+                                value={formData.Mocodes}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
+                                }}
+                            />
                         )}
                     </div>
                     </div>
@@ -751,7 +815,6 @@ export default function Updates() {
                         {options.victims_descent.map((code, index) => (
                             <option key={index} value={code}>{code}</option>
                         ))}
-                        <option value="custom">Other (Add New)</option>
                         </select>
                     </div>
                     </div>
