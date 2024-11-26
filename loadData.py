@@ -8,7 +8,7 @@ DB_HOST = '127.0.0.1'
 DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
-CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112_10k.csv'
+CSV_FILE_PATH = 'Crime_Data_from_2020_to_Present_20241112.csv'
 sql_commands = 'create_tables.sql'
 
 # Connect to the PostgreSQL database
@@ -78,7 +78,7 @@ print("Tables created successfully.")
 
 # Functions for parsing dates and times
 def parse_date(date_str):
-    return pd.to_datetime(date_str, errors='coerce').date()
+    return pd.to_datetime(date_str, format="%m/%d/%Y %I:%M:%S %p" , errors='coerce').date()
 
 def parse_time(time_val):
     try:

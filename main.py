@@ -68,8 +68,8 @@ if __name__ == "__main__":
         # most_common_weapon_to_age_group(conn)
         # all_weapons_by_age_group_desc(conn)   #usefull to cinfirm the results of the previous query
         # list_all_crime_types_by_frequency(conn)
-        areas_with_multiple_reports_on_two_crimes(conn, 'CHILD ANNOYING(17YRS & UNDER)', 'BATTERY - SIMPLE ASSAULT')
+        # areas_with_multiple_reports_on_two_crimes(conn, 'CHILD ANNOYING(17YRS & UNDER)', 'BATTERY - SIMPLE ASSAULT')
         # get_earliest_and_latest_dates(conn)
-        # most_common_cooccurring_crimes_in_top_area(conn, '2020-01-01', '2024-10-29')
+        most_common_cooccurring_crimes_in_top_area(conn, '2020-01-01', '2020-01-01')
         
         

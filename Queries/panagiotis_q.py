@@ -185,20 +185,38 @@ def most_common_cooccurring_crimes_in_top_area(connection, start_date, end_date)
     FROM crime_report cr1
     JOIN crime_report cr2 
         ON cr1.area_id = cr2.area_id 
-        AND cr1.timestamp_id = cr2.timestamp_id
+        ---AND cr1.timestamp_id = cr2.timestamp_id
         AND cr1.dr_no < cr2.dr_no
     JOIN Crime_code cc1 ON cc1.crm_cd_id = cr1.crm_cd
     JOIN Crime_code cc2 ON cc2.crm_cd_id = cr2.crm_cd AND cc1.crm_cd_id < cc2.crm_cd_id
-    JOIN Timestamp ts ON cr1.timestamp_id = ts.timestamp_id
+    JOIN Timestamp ts1 ON cr1.timestamp_id = ts1.timestamp_id
+    JOIN Timestamp ts2 ON cr2.timestamp_id = ts2.timestamp_id
     WHERE cr1.area_id = (SELECT area_id FROM AreaIncidentCounts)
-    AND ts.date_occ BETWEEN %s AND %s
+    AND ts1.date_occ BETWEEN %s AND %s
+    AND ts2.date_occ BETWEEN %s AND %s
     GROUP BY crime1, crime2
     ORDER BY co_occurrence_count DESC;
     """
     
+    sub = """
+        SELECT area_id, COUNT(*) AS incident_count
+        FROM crime_report
+        JOIN Timestamp ON crime_report.timestamp_id = Timestamp.timestamp_id
+        WHERE date_occ >= %s AND date_occ <= %s
+        GROUP BY area_id
+        ORDER BY COUNT(*) DESC
+    """
+    
+    subresults = execute_query(connection, sub, (start_date, end_date, ))
+    print("Subresults: ", subresults)
+    for row in subresults:
+        print(f"Area ID: {row[0]}, Incident Count: {row[1]}")
+        # print(f"DR_NO: {row[0]}, Area_ID: {row[1]}, Date: {row[2]}")
+    
+    
     
     # Execute the query to find the area with the most incidents
-    results = execute_query(connection, top_area_query, (start_date, end_date))
+    results = execute_query(connection, top_area_query, (start_date, end_date, ))
     
     for row in results:
         print(f"Top Area ID: {row[0]}")
@@ -208,7 +226,7 @@ def most_common_cooccurring_crimes_in_top_area(connection, start_date, end_date)
     print(f"Top Area ID: {top_area_id}")
     
     # Execute the main co-occurrence query
-    results = execute_query(connection, cooccurring_crimes_query, (start_date, end_date, start_date, end_date,))    
+    results = execute_query(connection, cooccurring_crimes_query, (start_date, end_date, start_date, end_date, start_date, end_date))    
     # Print each crime pair and their co-occurrence count
     if results:
         print("Co-occurring Crime Pairs in the Area with the Most Incidents:")
