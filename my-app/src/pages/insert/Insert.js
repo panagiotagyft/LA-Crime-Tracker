@@ -275,6 +275,7 @@ export default function Insert() {
     return (
         <div className="insert">
             <UserNavbar userEmail={userEmail} onLogout={handleLogout} />
+            <h2 className='insertTitle'>Insert</h2>
                 <div className="insertFormContainer">
                 <form className="insertForm" onSubmit={handleSubmit}>
                     <div className="formRow">

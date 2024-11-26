@@ -244,6 +244,7 @@ export default function Updates() {
     return (
         <div className="updates">
             <UserNavbar userEmail={userEmail} onLogout={handleLogout} />
+                <h2 className='updatesTitle'>Updates</h2>
                 <div className="updatesFormContainer">
                 <form className="updatesForm" onSubmit={handleSubmit}>
                     
