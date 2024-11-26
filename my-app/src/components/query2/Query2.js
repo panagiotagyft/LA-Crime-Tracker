@@ -45,7 +45,7 @@ export default function Query2() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Καθαρισμός προηγούμενων σφαλμάτων
+    setError(null); // Clearing previous errors.
 
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query2/', {
@@ -57,9 +57,9 @@ export default function Query2() {
       });
 
       if (response.data.message) {
-        setError(response.data.message); // Εμφάνιση μηνύματος αν δεν υπάρχουν δεδομένα
+        setError(response.data.message); // Display a message if no data is available.
       } else {
-        setResults(response.data); // Εμφάνιση αποτελεσμάτων
+        setResults(response.data); // Display results.
       }
 
     } catch (err) {
@@ -74,11 +74,9 @@ export default function Query2() {
       endTime: "",
       crmCd: "",
     });
-    // Καθαρισμός αποτελεσμάτων
+  
     setResults([]);
-    // Κρύψιμο φόρμας
     setIsFormVisible(false);
-    // Καθαρισμός σφαλμάτων
     setError(null);
   };
 

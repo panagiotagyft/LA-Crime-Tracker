@@ -1,6 +1,9 @@
 from django.urls import path
 from .views.queries_views.query1_views import Query1View
 from .views.queries_views.query2_views import Query2View
+from .views.queries_views.query3_views import Query3View
+from .views.queries_views.query4_views import Query4View
+
 from .views.functions_views import DropdownOptionsView, GetCodeDescriptionView, GenerateDRNOView, GetRecordByDRNOView
 from .views.insert_views import InsertView
 from .views.update_views import UpdateView
@@ -9,7 +12,9 @@ urlpatterns = [
     # queries
     path('query1/', Query1View.as_view(), name='query1'),
     path('query2/', Query2View.as_view(), name='query2'),
-    
+    path('query3/', Query3View.as_view(), name='query3'),
+    path('query4/', Query4View.as_view(), name='query4'),
+
     # functions
     path('dropdown-options/', DropdownOptionsView.as_view(), name='dropdown-options'),
     path('get-code-description/', GetCodeDescriptionView.as_view(), name='get-code-description'),
