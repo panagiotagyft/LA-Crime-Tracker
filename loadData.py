@@ -2,11 +2,9 @@ import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_batch
 from datetime import datetime
-import time
 
-start_time = time.time()
 # Replace with your actual details
-DB_HOST = 'localhost'
+DB_HOST = '127.0.0.1'
 DB_NAME = 'LA_Crimes'
 DB_USER = 'postgres'
 DB_PASS = '123098giota'
@@ -204,7 +202,7 @@ for i in range(1, 5):
         if crm_cd_col in df.columns:
             temp_df = df[[crm_cd_col]].drop_duplicates()  # Remove duplicates
             temp_df.columns = ['crm_cd']  # Rename the column
-            temp_df['crm_cd_desc'] = 'no description'  # Add a description column with empty values
+            temp_df['crm_cd_desc'] = 'there is no description!'  # Add a description column with empty values
             crm_code_list.append(temp_df)  # Append to the list
 
 
@@ -270,13 +268,14 @@ df['timestamp_id'] = df.apply(get_timestamp_id, axis=1)
 # ---------------------------------------------------------------------
 # Insert data into the -- Crime_report -- table
 crime_report_df = df[['DR_NO', 'Date Rptd', 'timestamp_id', 'Status', 'Premis Cd',
-                      'AREA', 'location_id', 'Mocodes', 'Weapon Used Cd',
+                      'Rpt Dist No', 'AREA', 'location_id', 'Mocodes', 'Weapon Used Cd',
                       'crm_cd_id', 'crm_cd_2_id', 'crm_cd_3_id', 'crm_cd_4_id']].rename(
     columns={
         'DR_NO': 'dr_no',
         'Date Rptd': 'date_rptd',
         'Status': 'status_code',
         'Premis Cd': 'premis_cd',
+        'Rpt Dist No': 'rpt_dist_no',
         'AREA': 'area_id',
         'Mocodes': 'mocodes',
         'Weapon Used Cd': 'weapon_cd'
@@ -284,20 +283,22 @@ crime_report_df = df[['DR_NO', 'Date Rptd', 'timestamp_id', 'Status', 'Premis Cd
 )
 crime_report_df['premis_cd'] = crime_report_df['premis_cd'].fillna(-1).astype(int)
 crime_report_df['weapon_cd'] = crime_report_df['weapon_cd'].fillna(-1).astype(int)
+crime_report_df['rpt_dist_no'] = crime_report_df['rpt_dist_no'].fillna(-1).astype(int)
 crime_report_records = crime_report_df.to_dict('records')
 
 for record in crime_report_records:
     cursor.execute("""
         INSERT INTO Crime_report (
-            dr_no, date_rptd, timestamp_id, status_code, premis_cd,
+            dr_no, date_rptd, timestamp_id, status_code, premis_cd, rpt_dist_no,
             area_id, location_id, mocodes, weapon_cd, crm_cd, crm_cd_2, crm_cd_3, crm_cd_4
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         record['dr_no'],
         record['date_rptd'],
         record['timestamp_id'],
         record['status_code'],
         record['premis_cd'],
+        record['rpt_dist_no'],
         record['area_id'],
         record['location_id'],
         record['mocodes'],
@@ -334,5 +335,3 @@ print('ok for Victim!')
 # Close the cursor and connection
 cursor.close()
 conn.close()
-
-print(f"--- {time.time() - start_time} seconds ---")

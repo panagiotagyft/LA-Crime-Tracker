@@ -107,11 +107,11 @@ sql="""
 cursor.execute(sql, (start_date, end_date))
 
 # Fetch results
-print("Results for Rpt Dist No")
-results = cursor.fetchall()
-for row in results:
-    print(f"{row[0]} {row[1]}")
-print()
+# print("Results for Rpt Dist No")
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]} {row[1]}")
+# print()
 
 
 
@@ -142,10 +142,10 @@ sql="""
 cursor.execute(sql, (crime, crime, start_date, end_date))
 
 # Fetch results
-results = cursor.fetchall()
-for row in results:
-    print(f"{row[0]} {row[1]}")
-print()
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]} {row[1]}")
+# print()
 
 # --------------------------------------------------------------------------------------------
 # -- 10: Find the area with the longest time range without an occurrence of a specific crime. 
@@ -176,10 +176,10 @@ sql = """
 cursor.execute(sql, (c,))
 
 # Fetch results
-results = cursor.fetchall()
-for row in results:
-    print(f"{row[0]} {row[1]} {row[2]}")
-print()
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]} {row[1]} {row[2]}")
+# print()
 
 c = 954
 sql="""
@@ -202,11 +202,11 @@ sql="""
 
 cursor.execute(sql, (c,))
 
-# Fetch results
-results = cursor.fetchall()
-for row in results:
-    print(f"{row[0]} {row[1]} {row[2]} {row[3]}")
-print()
+# # Fetch results
+# results = cursor.fetchall()
+# for row in results:
+#     print(f"{row[0]} {row[1]} {row[2]} {row[3]}")
+# print()
 
 # ------------------------------------------------------------------------------------------
 # -- 12:  Find the number of division of records for crimes reported on the same day in  
@@ -254,7 +254,7 @@ end_time='23:59:00'
 N=15
 sql=""" 
     WITH AuxiliaryTable1 AS(
-        SELECT crime_cd, 
+        SELECT crm_cd, 
             date_occ as date,
             weapon_cd,
             area_id
@@ -268,16 +268,17 @@ sql="""
     DR_NO_LIST AS(
         SELECT dr_no
         FROM AuxiliaryTable1
-        JOIN crime_report AS report ON crm_cd=crime_cd AND area_id = area_id
-        JOIN Timestamp AS time ON time.time_stamp_id = report.timestamp_id
+        JOIN crime_report AS report ON report.crm_cd=AuxiliaryTable1.crm_cd AND AuxiliaryTable1.area_id = report.area_id
+        JOIN Timestamp AS time ON time.timestamp_id = report.timestamp_id
         WHERE date_occ = date AND time_occ BETWEEN %s AND %s
         )
-    SELECT DISTINCT report.dr_no, area_name, crm_cd_desc, weapon_desc
+    SELECT DISTINCT report.dr_no, area_name, crm_cd_desc, weapon_desc, crime_code.crm_cd, weapon.weapon_cd
     FROM DR_NO_LIST AS dr
     JOIN crime_report AS report ON dr.dr_no = report.dr_no 
-    JOIN area
-    JOIN crime_code
-    JOIN weapon ON weapon_cd=weapon_cd
+    JOIN area ON area.area_id=report.area_id
+    JOIN crime_code ON crime_code.crm_cd_id=report.crm_cd
+    JOIN weapon ON weapon.weapon_cd=report.weapon_cd
+    WHERE crime_code.crm_cd <> -1
     
 """
 cursor.execute(sql, (start_time,end_time, N, start_time, end_time))
