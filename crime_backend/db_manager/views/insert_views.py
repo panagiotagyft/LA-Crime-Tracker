@@ -198,15 +198,15 @@ class InsertView(APIView):
                     timestamp_id = cursor.fetchone()[0]
                 print('line319')
                 # ---------------------------------------------------------------------
-                # Insert data into the -- Reporting_District -- table
-                if rpt_dist_no and area_id:
-                    with connection.cursor() as cursor:
-                        cursor.execute("""
-                            INSERT INTO Reporting_District (rpt_dist_no, area_id)
-                            VALUES (%s, %s)
-                            ON CONFLICT (rpt_dist_no) DO NOTHING
-                        """, [rpt_dist_no, area_id])
-                print('line359')
+                # # Insert data into the -- Reporting_District -- table
+                # if rpt_dist_no and area_id:
+                #     with connection.cursor() as cursor:
+                #         cursor.execute("""
+                #             INSERT INTO Reporting_District (rpt_dist_no, area_id)
+                #             VALUES (%s, %s)
+                #             ON CONFLICT (rpt_dist_no) DO NOTHING
+                #         """, [rpt_dist_no, area_id])
+                # print('line359')
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Crime_report -- table
                 with connection.cursor() as cursor:

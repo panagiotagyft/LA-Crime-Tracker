@@ -166,19 +166,19 @@ conn.commit()
 print('ok for Premises!')
 
 # ---------------------------------------------------------------------
-# Insert data into the -- Reporting_District -- table
-reporting_district_df = df[['Rpt Dist No', 'AREA']].rename(
-    columns={'Rpt Dist No': 'rpt_dist_no', 'AREA': 'area_id'}
-)
-# Correction: Use 'area_id' instead of 'area_area_id'
-reporting_district_records = reporting_district_df.drop_duplicates(subset=['rpt_dist_no', 'area_id']).to_dict('records')
-execute_batch(cursor, """
-    INSERT INTO Reporting_District (rpt_dist_no, area_id)
-    VALUES (%s, %s)
-    ON CONFLICT (rpt_dist_no) DO NOTHING
-""", [(record['rpt_dist_no'], record['area_id']) for record in reporting_district_records])
-conn.commit()
-print('ok for Reporting_District!')
+# # Insert data into the -- Reporting_District -- table
+# reporting_district_df = df[['Rpt Dist No', 'AREA']].rename(
+#     columns={'Rpt Dist No': 'rpt_dist_no', 'AREA': 'area_id'}
+# )
+# # Correction: Use 'area_id' instead of 'area_area_id'
+# reporting_district_records = reporting_district_df.drop_duplicates(subset=['rpt_dist_no', 'area_id']).to_dict('records')
+# execute_batch(cursor, """
+#     INSERT INTO Reporting_District (rpt_dist_no, area_id)
+#     VALUES (%s, %s)
+#     ON CONFLICT (rpt_dist_no) DO NOTHING
+# """, [(record['rpt_dist_no'], record['area_id']) for record in reporting_district_records])
+# conn.commit()
+# print('ok for Reporting_District!')
 
 # ---------------------------------------------------------------------
 # Insert data into the -- Weapon -- table

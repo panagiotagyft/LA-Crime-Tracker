@@ -14,7 +14,7 @@ class DropdownOptionsView(APIView):
                 area_codes = sorted(area_codes)
 
                 # Παράδειγμα query για Crime Codes
-                cursor.execute("""SELECT crm_cd FROM Crime_code""")
+                cursor.execute("""SELECT DISTINCT crm_cd FROM Crime_code""")
                 crime_codes = [row[0] for row in cursor.fetchall()]
                 crime_codes = sorted(crime_codes)
 

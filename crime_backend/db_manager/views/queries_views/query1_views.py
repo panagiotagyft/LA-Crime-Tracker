@@ -24,7 +24,10 @@ class Query1View(APIView):
             with connection.cursor() as cursor:
                 cursor.execute(sql, [start_time, end_time])
                 rows = cursor.fetchall()
-
+                
+            if not rows:  # Έλεγχος αν η λίστα είναι κενή
+                return Response({"message": "No data available for the given time range."}, status=200)
+            
             # Διαμόρφωση αποτελεσμάτων σε JSON
             results = [{"crm_cd": row[0], "report_count": row[1]} for row in rows]
             print(len(rows))
