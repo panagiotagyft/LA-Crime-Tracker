@@ -117,6 +117,7 @@ class UpdateView(APIView):
                 print("line110")
                 total_paramas_crm_rpt = {}
                 for table, fields in tables_data.items():
+                    if not fields: continue
                     print(f"line113 {fields}")
 
                     if table == "Crime_Location" or table == "Victim":
@@ -151,19 +152,43 @@ class UpdateView(APIView):
                     # print("Crime_Location")
                     elif table == "Crime_Location":
                         print("Crime_Location")
+                        cursor.execute("""
+                            SELECT COUNT(*) FROM Crime_report WHERE location_id = %s
+                        """, (row[7],))
+                        records = cursor.fetchone()[0]
+
                         params = []
                         for field in fields:
                             params += [fields_to_update[key] for key in field.keys()]
-                        params.append(row[7])   # location_id
-                        print(params)
-                        print(f"{set_clause}")
-                        sql = """
-                            UPDATE Crime_Location 
-                            SET {}
-                            WHERE location_id = %s
-                        """.format(set_clause)
-                        cursor.execute(sql, params)
-                        print("line143")
+
+                        if records > 1:
+                            print(f"----- {records}")
+                            cursor.execute("""
+                                INSERT INTO Crime_Location (location, lat, lon, cross_street)
+                                VALUES (%s, %s, %s, %s)
+                            """, params)
+                            connection.commit()
+                            
+                            cursor.execute("""
+                                SELECT location_id, location, lat, lon, cross_street
+                                FROM Crime_Location 
+                                WHERE location = %s AND lat = %s AND lon = %s AND cross_street = %s
+                            """, params)
+                            location_id = cursor.fetchone()[0]
+                            print(f"----- {row[7]}")
+                            print(f"----- {location_id}")
+                            total_paramas_crm_rpt["location_id"] = location_id
+
+                        else:
+                            params.append(row[7])   # location_id
+
+                            sql = """
+                                UPDATE Crime_Location 
+                                SET {}
+                                WHERE location_id = %s
+                            """.format(set_clause)
+                            cursor.execute(sql, params)
+                            print("line143")
 
                     elif table == "Status":
                         cursor.execute("""
