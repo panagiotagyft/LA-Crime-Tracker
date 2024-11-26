@@ -21,7 +21,7 @@ export default function Query3() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Καθαρισμός προηγούμενων σφαλμάτων
+    setError(null); 
 
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query3/', {
@@ -29,9 +29,9 @@ export default function Query3() {
       });
 
       if (response.data.message) {
-        setError(response.data.message); // Εμφάνιση μηνύματος αν δεν υπάρχουν δεδομένα
+        setError(response.data.message);
       } else {
-        setResults(response.data); // Εμφάνιση αποτελεσμάτων
+        setResults(response.data); 
       }
       
     } catch (err) {
@@ -40,15 +40,12 @@ export default function Query3() {
   };
 
   const handleReset = () => {
-    // Καθαρισμός των πεδίων της φόρμας
     setDate({
       Date: "",
     });
-    // Καθαρισμός αποτελεσμάτων
+ 
     setResults([]);
-    // Κρύψιμο φόρμας
     setIsFormVisible(false);
-    // Καθαρισμός σφαλμάτων
     setError(null);
   };
 
