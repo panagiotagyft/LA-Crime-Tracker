@@ -30,7 +30,6 @@ class Query1View(APIView):
             
             # Formatting results in JSON.
             results = [{"crm_cd": row[0], "report_count": row[1]} for row in rows]
-            print(len(rows))
             return Response(results, status=200)
         
         except Exception as e:
