@@ -20,13 +20,13 @@ class Query7View(APIView):
                 sql = """
                     -- Step 1: Generate all possible unique pairs of crime codes from the Crime_code table
                     WITH AllPairs AS (
+                        -- Step 1: Generate all possible pairs of crimes using a self-join
                         SELECT 
-                            c1.crm_cd AS crime1, c1.crm_cd_id AS crime1_id, -- The first crime code in the pair
-                            c2.crm_cd AS crime2, c2.crm_cd_id AS crime2_id  -- The second crime code in the pair
+                            c1.crm_cd AS crime1, c1.crm_cd_id AS crime1_id, -- The first crime in the pair
+                            c2.crm_cd AS crime2, c2.crm_cd_id AS crime2_id  -- The second crime in the pair
                         FROM Crime_code c1
-                        JOIN Crime_report cr2 ON cr1.dr_no = cr2.dr_no -- Match crimes in the same report
-                        WHERE 
-                            c1.crm_cd < c2.crm_cd -- Ensure unique pairs by ordering (e.g., include (111, 222) but exclude (222, 111))
+                        INNER JOIN Crime_code c2 ON c1.crm_cd_id < c2.crm_cd_id -- Ensure unique pairs by comparing IDs
+                        WHERE c1.crm_cd <> c2.crm_cd AND c1.crm_cd <> -1 AND c2.crm_cd <> -1
                     ),
                     -- Step 2: Calculate the frequency of each pair by area
                     PairFrequencyByArea AS (
