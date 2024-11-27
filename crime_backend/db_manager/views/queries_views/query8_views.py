@@ -8,14 +8,14 @@ class Query8View(APIView):
 
         def parse_date(date_str):
             return datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None
-        print("hello")
+        
         start_date = parse_date(request.query_params.get('startDate'))
         end_date = parse_date(request.query_params.get('endDate'))
         crime_code = request.query_params.get('crmCd')
         
         if not start_date or not end_date or not crime_code:
             return Response({"Error": "Start/End date and crime code are required!"}, status=400)
-        print("hello")
+       
         try:
             with connection.cursor() as cursor:
 

@@ -8,6 +8,7 @@ from .views.queries_views.query5_views import Query5View
 from .views.queries_views.query6_views import Query6View
 from .views.queries_views.query7_views import Query7View
 from .views.queries_views.query8_views import Query8View
+from .views.queries_views.query9_views import Query9View
 
 from .views.functions_views import DropdownOptionsView, GetCodeDescriptionView, GenerateDRNOView, GetRecordByDRNOView
 from .views.insert_views import InsertView
@@ -23,6 +24,7 @@ urlpatterns = [
     path('query6/', Query6View.as_view(), name='query6'),
     path('query7/', Query7View.as_view(), name='query7'),
     path('query8/', Query8View.as_view(), name='query8'),
+    path('query9/', Query9View.as_view(), name='query9'),
 
     # functions
     path('dropdown-options/', DropdownOptionsView.as_view(), name='dropdown-options'),
