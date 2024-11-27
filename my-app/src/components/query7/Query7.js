@@ -1,8 +1,12 @@
 import './Query7.css';
 import React, { useState } from "react";
+import axios from 'axios';
 
 export default function Query7() {
   const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
 
   const toggleFormVisibility = () => {
     setIsFormVisible((prev) => !prev);
@@ -21,11 +25,40 @@ export default function Query7() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Start Date:", dates.startDate);
-    console.log("End Date:", dates.endDate);
+    setError(null); 
+
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query7/', {
+        params: {
+          startDate: dates.startDate,
+          endDate: dates.endDate
+        },
+      });
+
+      if (response.data.message) {
+        setError(response.data.message);
+      } else {
+        setResults(response.data); 
+      }
+      
+    } catch (err) {
+      setError(err.response?.data?.error || "An unexpected error occurred.");
+    }
   };
+
+  const handleReset = () => {
+    setDates({
+      startDate: "",
+      endDate: "",
+    });
+ 
+    setResults([]);
+    setIsFormVisible(false);
+    setError(null);
+  };
+
 
   return (
     <div className='query7'>
@@ -36,8 +69,8 @@ export default function Query7() {
         <hr className='query7Line' />
         {isFormVisible && (
           <>
-            <div className='query7Middle'>
-              <form className='query7Form' onSubmit={handleSubmit}>
+            <form className='query7Form' onSubmit={handleSubmit}>
+              <div className='query7Middle'>
                 <div className='startDate'>
                   <label htmlFor="startDate">Start Date</label>
                   <input
@@ -60,11 +93,46 @@ export default function Query7() {
                     onChange={handleChange}
                   />
                 </div>
+                </div>
+                {!results.length > 0 && (
+                  <div className='query7Down'>
+                    <button type="submit" className='query7SubmitButton'>Submit</button>
+                  </div>
+                )}
               </form>
-            </div>
-            <div className='query7Down'>
-              <button type="submit" className='query7SubmitButton'>Submit</button>
-            </div>
+
+
+            {error && <div className='query7Error'>{error}</div>}
+            {results.length > 0 && (
+              <div className='query7Results'>
+                <h4 className='query7ResultsTitle'>Results:</h4>
+                <div className="resultsTableWrapper">
+                  <table className="resultsTable">
+                    <thead>
+                      <tr>
+                        <th>Area name</th>
+                        <th>Crime 1</th>
+                        <th>Crime 2</th>
+                        <th>Pair Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((result, index) => (
+                        <tr key={index}>
+                          <td>{result["Area name"]}</td>
+                          <td>{result["Crime 1"]}</td>
+                          <td>{result["Crime 2"]}</td>
+                          <td>{result["Pair Count"]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {results.length > 0 && (
+              <button onClick={handleReset} className="query7SubmitButton">Reset</button>
+            )}            
           </>
         )}
       </div>

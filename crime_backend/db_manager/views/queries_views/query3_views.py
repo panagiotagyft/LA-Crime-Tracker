@@ -76,10 +76,8 @@ class Query3View(APIView):
             if not rows:  # Check if the list is empty.
                 return Response({"message": "No data available for the given time range."}, status=200)
             
-            print(len(rows))
             # Formatting results in JSON.
             results = [{"Area Code": row[0], "The most frequent crime": row[1]} for row in rows]
-            print(results)
             return Response(results, status=200)
         
         except Exception as e:

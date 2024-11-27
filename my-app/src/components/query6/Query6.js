@@ -73,7 +73,7 @@ export default function Query6() {
     <div className='query6'>
       <div className='query6Box'>
         <div className='query6Up' onClick={toggleFormVisibility} style={{ cursor: 'pointer' }}>
-          <span className='query6Desc'>6. Find the total number of crimes for a specific date range or a specific Rpt Dist No.</span>
+          <span className='query6Desc'>6. Find the top-5 Area names with regards to total number of crimes reported per day for a specific date range. The same for Rpt Dist No.</span>
         </div>
         <hr className='query6Line' />
         {isFormVisible && (
