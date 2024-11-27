@@ -46,7 +46,6 @@ class Query6View(APIView):
                 return Response({"message": "No data available for the given time range."}, status=200)
             
             if input_type == 'area_name':
-                print(rows)
                 results = [{"area_name": row[0], "total_crimes": row[1]} for row in rows]
             else:
                 results = [{"rpt_dist_no": row[0], "total_crimes": row[1]} for row in rows]

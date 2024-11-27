@@ -62,7 +62,7 @@ export default function Query6() {
       startDate: "",
       endDate: "",
     });
-    setCategory("dateRange"); // Reset the dropdown to its default value
+    setCategory("area_name"); // Reset the dropdown to its default value
     setResults([]);
     setIsFormVisible(false);
     setError(null);
