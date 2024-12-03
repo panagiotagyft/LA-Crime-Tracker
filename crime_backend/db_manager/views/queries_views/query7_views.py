@@ -18,44 +18,7 @@ class Query7View(APIView):
         try:
             with connection.cursor() as cursor:
                 sql = """
-                    -- Step 1: Generate all possible unique pairs of crime codes from the Crime_code table
-                    WITH AllPairs AS (
-                        -- Step 1: Generate all possible pairs of crimes using a self-join
-                        SELECT 
-                            c1.crm_cd AS crime1, c1.crm_cd_id AS crime1_id, -- The first crime in the pair
-                            c2.crm_cd AS crime2, c2.crm_cd_id AS crime2_id  -- The second crime in the pair
-                        FROM Crime_code c1
-                        INNER JOIN Crime_code c2 ON c1.crm_cd_id < c2.crm_cd_id -- Ensure unique pairs by comparing IDs
-                        WHERE c1.crm_cd <> c2.crm_cd AND c1.crm_cd <> -1 AND c2.crm_cd <> -1
-                    ),
-                    -- Step 2: Calculate the frequency of each pair by area
-                    PairFrequencyByArea AS (
-                        SELECT
-                            ap.crime1, -- The first crime in the pair
-                            ap.crime2, -- The second crime in the pair
-                            cr.area_id, -- The area where the pair occurred
-                            COUNT(*) AS pair_count -- Count how many times this pair occurred in this area
-                        FROM AllPairs AS ap
-                        JOIN Crime_report AS cr ON (
-                                -- Check if both crimes in the pair are present in any of the crime report columns
-                                (ap.crime1_id = cr.crm_cd OR ap.crime1_id = cr.crm_cd_2 OR ap.crime1_id = cr.crm_cd_3 OR ap.crime1_id = cr.crm_cd_4)
-                                AND
-                                (ap.crime2_id = cr.crm_cd OR ap.crime2_id = cr.crm_cd_2 OR ap.crime2_id = cr.crm_cd_3 OR ap.crime2_id = cr.crm_cd_4)
-                            )
-                        WHERE cr.date_rptd BETWEEN %s AND %s
-                        GROUP BY ap.crime1, ap.crime2, cr.area_id -- Group results by area and pair
-                    )
-                    -- Step 3: Combine area names with pair frequency data and sort results
-                    SELECT 
-                        a.area_name, -- The name of the area
-                        pfba.crime1,   -- The first crime in the pair
-                        pfba.crime2,   -- The second crime in the pair
-                        pfba.pair_count -- The number of times this pair occurred in this area
-                    FROM PairFrequencyByArea pfba
-                    JOIN Area AS a ON a.area_id = pfba.area_id
-                    WHERE pfba.crime1 <> -1 AND pfba.crime2 <> -1
-                    ORDER BY pfba.pair_count DESC -- Sort by the number of occurrences in descending order
-                    LIMIT 1;
+                   #...
                 """
                 cursor.execute(sql, [start_date, end_date])
                 rows = cursor.fetchall()
