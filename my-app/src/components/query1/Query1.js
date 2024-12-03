@@ -34,7 +34,13 @@ export default function Query1() {
           endTime: times.endTime,
         },
       });
-      setResults(response.data);
+
+      if (response.data.message) {
+        setError(response.data.message); // Εμφάνιση μηνύματος αν δεν υπάρχουν δεδομένα
+      } else {
+        setResults(response.data); // Εμφάνιση αποτελεσμάτων
+      }
+      
     } catch (err) {
       setError(err.response?.data?.error || "An unexpected error occurred.");
     }
@@ -71,8 +77,9 @@ export default function Query1() {
         {/* Εμφάνιση Φόρμας ή Πίνακα */}
         {isFormVisible && (
           <>
-            <div className='query1Middle'>
-              <form className='query1Form' onSubmit={handleSubmit}>
+            <form className='query1Form' onSubmit={handleSubmit}>
+
+              <div className='query1Middle'>
                 <div className='startTime'>
                   <label htmlFor="startTime">Start Time</label>
                   <input className='startTimeInput' type="time" id="startTime" name="startTime" value={times.startTime} onChange={handleChange} />
@@ -81,11 +88,15 @@ export default function Query1() {
                   <label htmlFor="endTime">End Time</label>
                   <input className='endTimeInput' type="time" id="endTime" name="endTime" value={times.endTime} onChange={handleChange} />
                 </div>
+              </div>
+  
+              {!results.length > 0 &&(
                 <div className='query1Down'>
-                  <button type="submit" className='query1SubmitButton'>Submit</button>
-                </div>
-              </form>
-            </div>
+                <button type="submit" className='query1SubmitButton'>Submit</button>
+              </div>)}
+
+            </form>
+           
             {error && <div className='query1Error'>{error}</div>}
             {results.length > 0 && (
               <div className='query1Results'>
@@ -94,7 +105,7 @@ export default function Query1() {
                   <table className="resultsTable">
                     <thead>
                       <tr>
-                        <th>Crm Cd</th>
+                        <th>Crime Code</th>
                         <th>Report Count</th>
                       </tr>
                     </thead>

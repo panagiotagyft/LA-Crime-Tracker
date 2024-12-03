@@ -1,41 +1,81 @@
 import './Query10.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Query10() {
-    const [category, setCategory] = useState("area"); // Default επιλογή: Περιοχή
-    const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
 
   const toggleFormVisibility = () => {
     setIsFormVisible((prev) => !prev);
-    };
+  };
+  
+  const [options, setOptions] = useState({
+      crime_codes: [],
+   });
+
+    useEffect(() => {
+        // Fetch dropdown options from Django backend
+        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
+        .then((response) => {
+            setOptions(response.data);
+        })
+        .catch((error) => {
+            console.error("Error fetching dropdown options:", error);
+        });
+    }, []);
     
   const handleCategoryChange = (e) => {
     setCategory(e.target.value);
     };
 
-//   const handleCrimeChange = (e) => {
-//     setSpecificCrime(e.target.value);
-//   };
+  const [code, setCode] = useState({
+    crime_code: ""
+  });
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCode((prevTimes) => ({
+      ...prevTimes,
+      [name]: value,
+    }));
+  };
+  
+  const [category, setCategory] = useState("area_name"); // Default
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Category:", category);
+    setError(null); // Clear previous errors
 
-    fetch('/api/query10', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        category,
-        // specificCrime,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Results:", data);
-      })
-      .catch((error) => console.error('Error fetching data:', error));
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query10/', {
+        params: {
+          type: category, // Send the selected category as the type
+          crmCd: code.crime_code,
+        },
+      });
+
+      if (response.data.message) {
+        setError(response.data.message);
+      } else {
+        setResults(response.data);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "An unexpected error occurred.");
+    }
+  };
+
+  const handleReset = () => {
+    setCode({
+      crime_code: "",
+    });
+    setCategory("area_name"); // Reset the dropdown to its default value
+    setResults([]);
+    setIsFormVisible(false);
+    setError(null);
   };
 
   return (
@@ -47,168 +87,75 @@ export default function Query10() {
         <hr className='query10Line' />
      {isFormVisible && (
         <>
-        <div className='query10Middle'>
-            <form className="query10Form" onSubmit={handleSubmit}>
+        <form className="query10Form" onSubmit={handleSubmit}>
+            <div className='query10Middle'>
                 <div className="query10Category">
                     <label htmlFor="category">Select Category</label>
                     <select id="category" value={category} onChange={handleCategoryChange}>
-                        <option value="area">Area</option>
-                        <option value="rptDistNo">Rpt Dist No</option>
+                        <option value="area_name">Area</option>
+                        <option value="rpt_dist_no">Rpt Dist No</option>
                     </select>
                 </div>
 
                 <div className="query10CspecificCrime">
                     <label htmlFor="specificCrime">Specific Crime</label>
-                    <input className="crmCDquery10Input" list="numbers" id="numberInput" name="numberInput" placeholder="Select a Crm Cd"/>
-                      <datalist id="numbers">
-                                  <option value="110"></option>
-                                  <option value="113"></option>
-                                  <option value="121"></option>
-                                  <option value="122"></option>
-                                  <option value="210"></option>
-                                  <option value="220"></option>
-                                  <option value="230"></option>
-                                  <option value="231"></option>
-                                  <option value="235"></option>
-                                  <option value="236"></option>
-                                  <option value="237"></option>
-                                  <option value="250"></option>
-                                  <option value="251"></option>
-                                  <option value="310"></option>
-                                  <option value="320"></option>
-                                  <option value="330"></option>
-                                  <option value="331"></option>
-                                  <option value="341"></option>
-                                  <option value="343"></option>
-                                  <option value="345"></option>
-                                  <option value="347"></option>
-                                  <option value="349"></option>
-                                  <option value="350"></option>
-                                  <option value="351"></option>
-                                  <option value="352"></option>
-                                  <option value="353"></option>
-                                  <option value="354"></option>
-                                  <option value="410"></option>
-                                  <option value="420"></option>
-                                  <option value="421"></option>
-                                  <option value="432"></option>
-                                  <option value="433"></option>
-                                  <option value="434"></option>
-                                  <option value="435"></option>
-                                  <option value="436"></option>
-                                  <option value="437"></option>
-                                  <option value="438"></option>
-                                  <option value="439"></option>
-                                  <option value="440"></option>
-                                  <option value="441"></option>
-                                  <option value="442"></option>
-                                  <option value="443"></option>
-                                  <option value="444"></option>
-                                  <option value="445"></option>
-                                  <option value="446"></option>
-                                  <option value="450"></option>
-                                  <option value="451"></option>
-                                  <option value="452"></option>
-                                  <option value="453"></option>
-                                  <option value="470"></option>
-                                  <option value="471"></option>
-                                  <option value="473"></option>
-                                  <option value="474"></option>
-                                  <option value="475"></option>
-                                  <option value="480"></option>
-                                  <option value="485"></option>
-                                  <option value="487"></option>
-                                  <option value="510"></option>
-                                  <option value="520"></option>
-                                  <option value="522"></option>
-                                  <option value="622"></option>
-                                  <option value="623"></option>
-                                  <option value="624"></option>
-                                  <option value="625"></option>
-                                  <option value="626"></option>
-                                  <option value="627"></option>
-                                  <option value="647"></option>
-                                  <option value="648"></option>
-                                  <option value="649"></option>
-                                  <option value="651"></option>
-                                  <option value="652"></option>
-                                  <option value="653"></option>
-                                  <option value="654"></option>
-                                  <option value="660"></option>
-                                  <option value="661"></option>
-                                  <option value="662"></option>
-                                  <option value="664"></option>
-                                  <option value="666"></option>
-                                  <option value="668"></option>
-                                  <option value="670"></option>
-                                  <option value="740"></option>
-                                  <option value="745"></option>
-                                  <option value="753"></option>
-                                  <option value="755"></option>
-                                  <option value="756"></option>
-                                  <option value="760"></option>
-                                  <option value="761"></option>
-                                  <option value="762"></option>
-                                  <option value="763"></option>
-                                  <option value="805"></option>
-                                  <option value="806"></option>
-                                  <option value="810"></option>
-                                  <option value="812"></option>
-                                  <option value="813"></option>
-                                  <option value="814"></option>
-                                  <option value="815"></option>
-                                  <option value="820"></option>
-                                  <option value="821"></option>
-                                  <option value="822"></option>
-                                  <option value="830"></option>
-                                  <option value="840"></option>
-                                  <option value="845"></option>
-                                  <option value="850"></option>
-                                  <option value="860"></option>
-                                  <option value="865"></option>
-                                  <option value="870"></option>
-                                  <option value="880"></option>
-                                  <option value="882"></option>
-                                  <option value="884"></option>
-                                  <option value="886"></option>
-                                  <option value="888"></option>
-                                  <option value="890"></option>
-                                  <option value="900"></option>
-                                  <option value="901"></option>
-                                  <option value="902"></option>
-                                  <option value="903"></option>
-                                  <option value="904"></option>
-                                  <option value="906"></option>
-                                  <option value="910"></option>
-                                  <option value="920"></option>
-                                  <option value="921"></option>
-                                  <option value="922"></option>
-                                  <option value="924"></option>
-                                  <option value="926"></option>
-                                  <option value="928"></option>
-                                  <option value="930"></option>
-                                  <option value="931"></option>
-                                  <option value="932"></option>
-                                  <option value="933"></option>
-                                  <option value="940"></option>
-                                  <option value="942"></option>
-                                  <option value="943"></option>
-                                  <option value="944"></option>
-                                  <option value="946"></option>
-                                  <option value="948"></option>
-                                  <option value="949"></option>
-                                  <option value="950"></option>
-                                  <option value="951"></option>
-                                  <option value="954"></option>
-                                  <option value="956"></option>
-                              </datalist>
-                            
+                    <select
+                    className="crmCDquery10Input"
+                    id="crmCDquery10Input"
+                    name="crime_code"
+                    placeholder="Select a Crime Code"
+                    value={code.crime_code}
+                    onChange={handleChange}>
+                    
+                    <option value="" disabled>Select a Crime Code</option>
+                    {options.crime_codes?.map((code, index) => (
+                      <option key={index} value={code}>{code}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+                {!results.length > 0 && (
+                  <div className='query10Down'>
+                    <button type="submit" className='query10SubmitButton'>Submit</button>
                   </div>
-            </form>
-            </div>
-            <div className='query10Down'>
-              <button type="submit" className='query10SubmitButton'>Submit</button>
-            </div>
+                )}
+              </form>
+      
+            {error && <div className='query10Error'>{error}</div>}
+            {results.length > 0 && (
+              <div className="query10Results">
+                <h4 className="query10ResultsTitle">Results:</h4>
+                <div className="resultsTableWrapper">
+                  <table className="resultsTable">
+                    <thead>
+                      <tr>
+                        {category === "area_name" && <th>Area Name</th>}
+                        {category === "rpt_dist_no" && <th>Rpt Dist No</th>}
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Gap</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((result, index) => (
+                        <tr key={index}>
+                          {category === "area_name" && <td>{result["area_name"]}</td>}
+                          {category === "rpt_dist_no" && <td>{result["rpt_dist_no"]}</td>}
+                          <td>{result["start_date"]}</td>
+                          <td>{result["end_date"]}</td>
+                          <td>{result["gap"]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {results.length > 0 && (
+              <button onClick={handleReset} className="query10SubmitButton">Reset</button>
+            )}     
         </>
         )}
       </div>

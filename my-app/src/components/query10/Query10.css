@@ -5,7 +5,7 @@
 }
 
 .query10Box {
-    width: 40%;
+    width: 50%;
     height: auto;
     padding: 20px;
     background: rgba(255, 255, 255, 0.744);
@@ -27,14 +27,14 @@
 .query10Middle {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    gap: 60px;
 }
 
 .query10Desc {
     font-size: 15px;
     font-weight: 700;
-    margin-top: 10px;
+    margin-top: -20px;
     color: #455a64;
 }
 
@@ -48,10 +48,10 @@
 
 .query10Form {
     display: flex;
-    flex-direction: row;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 25px;
+    padding-top: -10px;
+    gap: 40px;
 }
 
 .categorySelect,
@@ -92,8 +92,8 @@
 }
 
 .crmCDquery10Input {
-    height: 30px;
-    width: 150px;
+    height: 40px;
+    width: 200px;
     border-radius: 10px;
     border: none;
     background-color: white;
@@ -104,14 +104,15 @@
 }
 
 .query10SubmitButton {
-    height: 40px;
-    width: 120px;
+    margin-top: 10px;
+    height: 30px;
+    width: 100px;
     border-radius: 10px;
     border: none;
     background-color: #455a64;
     color: white;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 400;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -122,4 +123,50 @@
 
 .query10SubmitButton:active {
     transform: translateY(0.1em);
+}
+
+.resultsTableWrapper {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #263238;
+    margin-right: 90px;
+}
+
+.resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.resultsTable th,
+.resultsTable td {
+    padding: 10px;
+    border: 1px solid #b0bec5;
+}
+
+.resultsTable td {
+    background-color: #78909c;
+}
+
+.resultsTable th {
+    background-color: #263238;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.query10ResultsTitle {
+    color: #263238;
+}
+
+.query10Error {
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
 }

@@ -16,7 +16,7 @@
 
 .registerBox {
     width: 400px;
-    height: 400px;
+    height: 450px;
     padding: 20px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 15px;
@@ -29,7 +29,7 @@
     flex-direction: column;
     gap: 25px;
     align-items: center;
-    padding-top: 40px;
+    padding-top: 30px;
 }
 
 .registerInput {
