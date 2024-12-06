@@ -20,24 +20,24 @@ class Query13View(APIView):
         sql = """
             WITH AuxiliaryTable1 AS(
                 SELECT crm_cd.crm_cd AS crime_cd, 
-                    crime_chronicle_date_occ as date,
+                    time.date_occ AS date,
                     wp.weapon_cd AS weapon_cd,
                     cr.area_id AS area_id
                 FROM Crime_report AS cr
                 JOIN Weapon AS wp ON cr.weapon_cd = wp.weapon_cd
                 JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id
                 JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id
-                WHERE wp.weapon_cd <> -1 AND crm_cd.crm_cd <> -1 AND time.time_occ %s AND %s 
+                WHERE wp.weapon_cd <> -1 AND crm_cd.crm_cd <> -1 AND time.time_occ BETWEEN %s AND %s 
                 GROUP BY crm_cd.crm_cd, time.date_occ, wp.weapon_cd, cr.area_id 
                 HAVING COUNT(crm_cd.crm_cd) = %s
                 ORDER BY crm_cd.crm_cd, time.date_occ, wp.weapon_cd, cr.area_id
             ),
             DR_NO_LIST AS(
                 SELECT dr_no
-                FROM AuxiliaryTable1
-                JOIN Crime_report AS cr ON cr.weapon_cd = weapon_cd AND cr.area_id = area_id
-                JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id AND crm_cd.crm_cd = crime_cd
-                JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id AND time.date_occ = date
+                FROM AuxiliaryTable1 AS aux
+                JOIN Crime_report AS cr ON cr.weapon_cd = aux.weapon_cd AND cr.area_id = aux.area_id
+                JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id AND crm_cd.crm_cd = aux.crime_cd
+                JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id AND time.date_occ = aux.date
             )
             SELECT DISTINCT cr.dr_no, a.area_name, crm_cd.crm_cd_desc, wp.weapon_desc
             FROM DR_NO_LIST AS dr
