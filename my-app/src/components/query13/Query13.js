@@ -1,30 +1,71 @@
 import './Query13.css';
 import React, { useState } from "react";
+import axios from 'axios';
 
 export default function Query13() {
   const [isFormVisible, setIsFormVisible] = useState(false);
+
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
 
   const toggleFormVisibility = () => {
     setIsFormVisible((prev) => !prev);
   };
 
-  const [times, setTimes] = useState({
+  const [params, setParams] = useState({
     startTime: "",
     endTime: "",
+    numberInput: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTimes((prevTimes) => ({
+    if (name === "numberInput" && value && parseInt(value) <= 0) {
+      alert("Please enter a positive integer greater than 0.");
+      return; // αποτρέπει το update του state
+    }
+    setParams((prevTimes) => ({
       ...prevTimes,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Start Time:", times.startTime);
-    console.log("End Time:", times.endTime);
+    setError(null); 
+
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query13/', {
+        params: {
+          startTime: params.startTime,
+          endTime: params.endTime,
+          N: params.numberInput
+        },
+      });
+
+      if (response.data.message) {
+        setError(response.data.message); 
+      } else {
+        setResults(response.data); 
+      }
+      
+    } catch (err) {
+      setError(err.response?.data?.error || "An unexpected error occurred.");
+    }
+  };
+
+  const handleReset = () => {
+
+    setParams({
+      startTime: "",
+      endTime: "",
+      numberInput: ""
+    });
+  
+    setResults([]);
+    setIsFormVisible(false);
+    setError(null);
   };
 
   return (
@@ -39,45 +80,75 @@ export default function Query13() {
         <hr className='query13Line' />
         {isFormVisible && (
           <>
-          <div className='query13Middle'>
-            <form className='query13Form' onSubmit={handleSubmit}>
+          <form className='query13Form' onSubmit={handleSubmit}>
+            <div className='query13Middle'>
                 <div className='startTime'>
                     <label htmlFor="startTime">Start Time</label>
-                    <input className='startTimeInput' type="time" id="startTime" name="startTime" value={times.startTime} onChange={handleChange}/>
+                    <input className='startTimeInput' type="time" id="startTime" name="startTime" value={params.startTime} onChange={handleChange}/>
                 </div>
                 <div className='endTime'>
                     <label htmlFor="endTime">End Time</label>
-                    <input className='endTimeInput' type="time" id="endTime" name="endTime" value={times.endTime} onChange={handleChange} />
+                    <input className='endTimeInput' type="time" id="endTime" name="endTime" value={params.endTime} onChange={handleChange} />
                 </div>
                 
                   <div className='Nquery13'>
                       <label htmlFor="N">N</label>
                       <input
                         className="Nquery13Input"
-                        id="numberInput"
+                        id="N"
                         name="numberInput"
+                        value={params.numberInput}
                         type="number"
                         placeholder="Enter a value > 0"
                         min="1"
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value && parseInt(value) <= 0) {
-                            alert("Please enter a positive integer greater than 0.");
-                          }
-                        }}
+                        onChange={handleChange}
                       />
-                  </div>
-            </form>
-          </div>
+                </div>
+              </div>
 
-          <div className='query13Down'>
-            <button type="submit" className='query13SubmitButton'>Submit</button>
-          </div>
+              {results.length === 0 && (
+                <div className='query13Down'>
+                  <button type="submit" className='query13SubmitButton'>Submit</button>
+                </div>
+              )}
+
+            </form>
+         
+
+            {error && <div className='query13Error'>{error}</div>}
+            {results.length > 0 && (
+              <div className='query13Results'>
+                <h4 className='query13ResultsTitle'>Results:</h4>
+                <div className="resultsTableWrapper">
+                  <table className="resultsTable">
+                    <thead>
+                      <tr>
+                        <th>DR_NO</th>
+                        <th>Area name</th>
+                        <th>Crime code desc</th>
+                        <th>Weapon desc</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((result, index) => (
+                        <tr key={index}>
+                          <td>{result["DR_NO"]}</td>
+                          <td>{result["Area name"]}</td>
+                          <td>{result["Crime code desc"]}</td>
+                          <td>{result["Weapon desc"]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {results.length > 0 && (
+              <button onClick={handleReset} className="query13SubmitButton">Reset</button>
+            )}
           </>
         )}
-
       </div>
-
     </div>
-  )
+  );
 }

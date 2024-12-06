@@ -5,14 +5,19 @@
 }
 
 .query13Box {
-    width: 40%;
+    width: 50%;
     height: 40%;
     padding: 20px;
     background: rgba(255, 255, 255, 0.744);
+    /* Semi-transparent background */
     border-radius: 15px;
+    /* Rounded corners */
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Shadow for depth */
     backdrop-filter: blur(10px);
+    /* Blur effect on the background */
     border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Subtle border */
     color: #fff;
     text-align: center;
     display: flex;
@@ -28,7 +33,7 @@
     flex: 1;
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    gap: 60px;
 }
 
 .query13Desc {
@@ -47,9 +52,9 @@
 
 .query13Form {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    padding-top: -10px;
     gap: 40px;
 }
 
@@ -83,6 +88,7 @@
 }
 
 .query13SubmitButton {
+    margin-top: 10px;
     height: 30px;
     width: 100px;
     border-radius: 10px;
@@ -101,4 +107,50 @@
 
 .query13SubmitButton:active {
     transform: translateY(0.1em);
+}
+
+.resultsTableWrapper {
+    width: 100%;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 20px;
+    border: 1px solid #263238;
+    margin-right: 90px;
+}
+
+.resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.resultsTable th,
+.resultsTable td {
+    padding: 10px;
+    border: 1px solid #b0bec5;
+}
+
+.resultsTable td {
+    background-color: #78909c;
+}
+
+.resultsTable th {
+    background-color: #263238;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.query13ResultsTitle {
+    color: #263238;
+}
+
+.query13Error {
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
 }
