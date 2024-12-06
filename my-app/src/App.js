@@ -6,7 +6,8 @@ import Home from './pages/home/Home';
 import Queries from './pages/queries/Queries';
 import Insert from './pages/insert/Insert';
 import Updates from './pages/updates/Updates';
-import ProtectedRoute from './context/ProtectedRoute'; // Εισαγωγή του ProtectedRoute
+import Search from './pages/search/Search';
+import ProtectedRoute from './context/ProtectedRoute'; 
 
 const router = createBrowserRouter([
   { path: "/", element: <Login /> },
@@ -41,6 +42,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Updates />
+      </ProtectedRoute>
+    ),
+  },
+{
+    path: "/search",
+    element: (
+      <ProtectedRoute>
+        <Search />
       </ProtectedRoute>
     ),
   },
