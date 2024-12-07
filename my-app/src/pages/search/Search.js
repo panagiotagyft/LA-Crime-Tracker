@@ -14,7 +14,7 @@ export default function Search() {
     const [results, setResults] = useState([]);
     const [error, setError] = useState(null);
 
-    const [area, setArea] = useState({ area: "" });
+    const [area, setArea] = useState({ area_name: "" });
         
     const [options, setOptions] = useState({
         area_names: [],
@@ -46,7 +46,7 @@ export default function Search() {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/db_manager/search/', {
         params: {
-          area_name: area.area,
+          area_name: area.area_name,
         },
       });
 
@@ -80,10 +80,10 @@ export default function Search() {
                    <label htmlFor="searchAreaName">Area</label>
                     <select
                     className="searchAreaName"
-                    id="searchAreaName"
+                    id="area_name"
                     name="area_name"
                     placeholder="Select Area"
-                    value={area.area}
+                    value={area.area_name}
                     onChange={handleChange}>
                     
                     <option value="" disabled>Select Area</option>
@@ -105,18 +105,68 @@ export default function Search() {
                 <div className="resultsTableWrapper">
                   <table className="resultsTable">
                     <thead>
-                      <tr>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Gap</th>
+                  <tr>
+                    <th>DR_NO</th>
+                    <th>Date Rptd</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Status Desc</th>
+                    <th>Premis code</th>
+                    <th>Premis code desc</th>
+                    <th>rpt_dist_no</th>
+                    <th>Area ID</th>
+                    <th>Area Name</th> 
+                    <th>Loacation ID</th>
+                    <th>Location</th>
+                    <th>Latitude</th>
+                    <th>Longtitude</th>
+                    <th>Cross Street</th>
+                    <th>Mocodes</th>
+                    <th>Weapon Code</th>
+                    <th>Weapon code desc</th>
+                    <th>Crime code 1</th>
+                    <th>Crime code 1 desc</th>    
+                    <th>Crime code 2</th> 
+                    <th>Crime code 3</th> 
+                    <th>Crime code 4</th> 
+                    <th>Victim ID </th> 
+                    <th>Victim age</th> 
+                    <th>Victim sex </th> 
+                    <th>Victim descent</th>
                       </tr>
                     </thead>
                     <tbody>
                       {results.map((result, index) => (
                         <tr key={index}>
-                          <td>{result["start_date"]}</td>
-                          <td>{result["end_date"]}</td>
-                          <td>{result["gap"]}</td>
+                          <td>{result["DR_NO"]}</td>
+                          <td>{result["Date Rptd"]}</td>
+                          <td>{result["Date"]}</td>
+                          <td>{result["Time"]}</td>
+                          <td>{result["Status"]}</td>
+                          <td>{result["Status Desc"]}</td>
+                          <td>{result["Premis code"]}</td>
+                          <td>{result["Premis code desc"]}</td>
+                          <td>{result["rpt_dist_no"]}</td>
+                          <td>{result["Area ID"]}</td>
+                          <td>{result["Area Name"]}</td>
+                          <td>{result["Loacation ID"]}</td>
+                          <td>{result["Loacation"]}</td>
+                          <td>{result["Latitude"]}</td>
+                          <td>{result["Longtitude"]}</td>
+                          <td>{result["Cross Street"]}</td>
+                          <td>{result["Mocodes"]}</td>
+                          <td>{result["Weapon Code"]}</td>
+                          <td>{result["Weapon code desc"]}</td>
+                          <td>{result["Crime code 1"]}</td>
+                          <td>{result["Crime code 1 desc"]}</td>
+                          <td>{result["Crime code 2"]}</td>
+                          <td>{result["Crime code 3"]}</td>
+                          <td>{result["Crime code 4"]}</td>  
+                          <td>{result["Victim ID"]}</td>
+                          <td>{result["Victim age"]}</td>
+                          <td>{result["Victim sex"]}</td>
+                          <td>{result["Victim descent"]}</td> 
                         </tr>
                       ))}
                     </tbody>

@@ -17,6 +17,7 @@ from .views.queries_views.query13_views import Query13View
 from .views.functions_views import DropdownOptionsView, GetCodeDescriptionView, GenerateDRNOView, GetRecordByDRNOView
 from .views.insert_views import InsertView
 from .views.update_views import UpdateView
+from .views.search_views import SearchView
 
 urlpatterns = [
     # queries
@@ -40,7 +41,8 @@ urlpatterns = [
     path('generate-drno/', GenerateDRNOView.as_view(), name='generate-drno'),
     path('get-record/', GetRecordByDRNOView.as_view(), name='get-record'),
 
-    # updates & insert
+    # updates & insert & search
     path('insert-record/', InsertView.as_view(), name='insert-record'),
     path('update-record/', UpdateView.as_view(), name='update-record'),
+    path('search/', SearchView.as_view(), name='search'),
 ]

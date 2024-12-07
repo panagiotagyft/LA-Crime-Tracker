@@ -12,8 +12,11 @@ class DropdownOptionsView(APIView):
                 cursor.execute("SELECT area_id FROM Area")
                 area_codes = [row[0] for row in cursor.fetchall()]
                 area_codes = sorted(area_codes)
+                
+                cursor.execute("SELECT area_name FROM Area")
+                area_names = [row[0] for row in cursor.fetchall()]
+                area_names = sorted(area_names)
 
-                # Παράδειγμα query για Crime Codes
                 cursor.execute("""SELECT DISTINCT crm_cd FROM Crime_code""")
                 crime_codes = [row[0] for row in cursor.fetchall()]
                 crime_codes = sorted(crime_codes)
@@ -61,6 +64,7 @@ class DropdownOptionsView(APIView):
                 "victims_descent": victims_descent,
                 "mocodes": mocodes,
                 "dr_numbers": dr_numbers,
+                "area_names": area_names
             }
            
             return Response(data, status=status.HTTP_200_OK)
