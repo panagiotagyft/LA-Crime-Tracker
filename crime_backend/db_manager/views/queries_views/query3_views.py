@@ -19,6 +19,7 @@ class Query3View(APIView):
             with connection.cursor() as cursor:
 
                 sql="""
+                --- revert
                    #....
                 """
                 cursor.execute(sql, [date, date, date, date])
