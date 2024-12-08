@@ -15,9 +15,6 @@ class Query2View(APIView):
 
         if not start_time or not end_time or not crime_code:
             return Response({"Error": "Start/End time and crime code are required!!"}, status=400)
-
-        print(start_time)
-        print(end_time)
         try:
             with connection.cursor() as cursor:
 
@@ -36,10 +33,9 @@ class Query2View(APIView):
             if not rows:  # Check if the list is empty.
                 return Response({"message": "No data available for the given time range."}, status=200)
             
-            print(len(rows))
             # Formatting results in JSON.
             results = [{"Reported Day": row[0], "Total number of reports": row[1]} for row in rows]
-            print(results)
+
             return Response(results, status=200)
         
         except Exception as e:
