@@ -81,12 +81,31 @@ CREATE TABLE IF NOT EXISTS Victim (
     FOREIGN KEY (dr_no) REFERENCES Crime_report(dr_no)
 );
 
----------------------------------------
--- when we care only about equality, we use hash index
-CREATE INDEX IF NOT EXISTS Crime_report_crm_cd_idx ON Crime_report(crm_cd) USING hash (crm_cd);
+-- Index for crime date and time
+CREATE INDEX IF NOT EXISTS idx_date_occ ON Timestamp(date_occ);
+CREATE INDEX IF NOT EXISTS idx_time_occ ON Timestamp(time_occ); 
 CREATE INDEX IF NOT EXISTS Crime_report_timestamp_id_idx ON Crime_report(timestamp_id);
----------------------------------------
-CREATE INDEX IF NOT EXISTS Crime_report_area_id_idx ON Crime_report(area_id) USING hash (area_id);
-CREATE INDEX IF NOT EXISTS Crime_report_weapon_cd_idx ON Crime_report(weapon_cd) USING hash (weapon_cd);
-CREATE INDEX IF NOT EXISTS Area_area_name_idx ON Area(area_name) USING hash (area_name);
-CREATE INDEX IF NOT EXISTS Crime_report_location_id_idx ON Crime_report(location_id) USING hash (location_id);
+
+-- Index for primary crime code
+CREATE INDEX idx_crm_cd ON Crime_report(crm_cd); 
+
+-- Indexes for secondary crime codes
+CREATE INDEX idx_crm_cd_2 ON Crime_report(crm_cd_2);
+CREATE INDEX idx_crm_cd_3 ON Crime_report(crm_cd_3);
+CREATE INDEX idx_crm_cd_4 ON Crime_report(crm_cd_4);
+
+-- Index for area (Area ID)
+CREATE INDEX idx_area_id ON Crime_report(area_id); 
+CREATE INDEX idx_area_name ON Area(area_name);
+
+-- Indexes for geographic data (Latitude and Longitude)
+CREATE INDEX idx_lat_lon ON Crime_Location(lat, lon); -- Speeds up geographic searches using latitude and longitude
+
+-- Index for victim's age
+CREATE INDEX idx_vict_age ON Victim(vict_age); -- Optimizes queries categorizing victims by age
+
+-- Index for crime status code
+CREATE INDEX idx_status_code ON Crime_report(status_code); 
+
+-- Index for weapon type
+CREATE INDEX idx_weapon_cd ON Crime_report(weapon_cd);
