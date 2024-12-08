@@ -108,12 +108,9 @@
 
 .resultsTableWrapper2 {
     max-height: 400px;
-    /* Μέγιστο ύψος του πίνακα */
     overflow-y: auto;
-    /* Ενεργοποίηση κάθετου scroll */
     margin-top: 20px;
     border: 1px solid #263238;
-    /* Περιθώριο γύρω από τον πίνακα */
 }
 
 .resultsTable2 {
