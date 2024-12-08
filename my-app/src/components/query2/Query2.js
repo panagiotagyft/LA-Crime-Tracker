@@ -21,18 +21,27 @@ export default function Query2() {
 
   const [options, setOptions] = useState({
       crime_codes: [],
-   });
+  });
+  
+  const fetchOptions = (type) => {
+    axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/", {
+        params: { type },
+    })
+    .then((response) => {
+        const newOptions = response.data[type] || [];
+        setOptions((prev) => ({
+            ...prev,
+            [type]: newOptions,
+        }));
+    })
+    .catch((error) => console.error(`Error fetching ${type} options:`, error));
+  };
 
-    useEffect(() => {
-        // Fetch dropdown options from Django backend
-        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
-        .then((response) => {
-            setOptions(response.data);
-        })
-        .catch((error) => {
-            console.error("Error fetching dropdown options:", error);
-        });
-    }, []);
+  const handleFocus = (type) => {
+      if (options[type].length === 0) {
+          fetchOptions(type, true);
+      }
+  };
 
 
   const handleChange = (e) => {
@@ -123,6 +132,7 @@ export default function Query2() {
                   name="crmCd"
                   placeholder="Select a Crm Cd"
                   value={parameters.crmCd}
+                  onFocus={() => handleFocus("crime_codes")}
                   onChange={handleChange}
                 >
                   <option value="" disabled>Select a Crm Cd</option>

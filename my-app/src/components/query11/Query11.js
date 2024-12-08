@@ -1,5 +1,5 @@
 import './Query11.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 export default function Query11() {
@@ -14,19 +14,28 @@ export default function Query11() {
   };
   
   const [options, setOptions] = useState({
-      crime_codes: [],
+      crime_codes_desc: [],
    });
 
-    useEffect(() => {
-        // Fetch dropdown options from Django backend
-        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
-        .then((response) => {
-            setOptions(response.data);
-        })
-        .catch((error) => {
-            console.error("Error fetching dropdown options:", error);
-        });
-    }, []);
+  const fetchOptions = (type) => {
+    axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/", {
+        params: { type },
+    })
+    .then((response) => {
+        const newOptions = response.data[type] || [];
+        setOptions((prev) => ({
+            ...prev,
+            [type]: newOptions,
+        }));
+    })
+    .catch((error) => console.error(`Error fetching ${type} options:`, error));
+  };
+
+  const handleFocus = (type) => {
+      if (options[type].length === 0) {
+          fetchOptions(type, true);
+      }
+  };
 
   const [code, setCode] = useState({
       crime_code1: "",
@@ -93,10 +102,11 @@ export default function Query11() {
                     name="crime_code1"
                     placeholder="Select a Crime Code"
                     value={code.crime_code1}
+                    onFocus={() => handleFocus("crime_codes_desc")}
                     onChange={handleChange}>
                     
                     <option value="" disabled>Select a Crime Code</option>
-                    {options.crime_codes?.map((code, index) => (
+                    {options.crime_codes_desc?.map((code, index) => (
                       <option key={index} value={code}>{code}</option>
                     ))}
                   </select>
@@ -110,10 +120,11 @@ export default function Query11() {
                     name="crime_code2"
                     placeholder="Select a Crime Code"
                     value={code.crime_code2}
+                    onFocus={() => handleFocus("crime_codes_desc")}
                     onChange={handleChange}>
                     
                     <option value="" disabled>Select a Crime Code</option>
-                    {options.crime_codes?.map((code, index) => (
+                    {options.crime_codes_desc?.map((code, index) => (
                       <option key={index} value={code}>{code}</option>
                     ))}
                   </select>

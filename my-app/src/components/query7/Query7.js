@@ -1,3 +1,4 @@
+
 import './Query7.css';
 import React, { useState } from "react";
 import axios from 'axios';
@@ -110,7 +111,6 @@ export default function Query7() {
                   <table className="resultsTable">
                     <thead>
                       <tr>
-                        <th>Area name</th>
                         <th>Crime 1</th>
                         <th>Crime 2</th>
                         <th>Pair Count</th>
@@ -119,7 +119,6 @@ export default function Query7() {
                     <tbody>
                       {results.map((result, index) => (
                         <tr key={index}>
-                          <td>{result["Area name"]}</td>
                           <td>{result["Crime 1"]}</td>
                           <td>{result["Crime 2"]}</td>
                           <td>{result["Pair Count"]}</td>

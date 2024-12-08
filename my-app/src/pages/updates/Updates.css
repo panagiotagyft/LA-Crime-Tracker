@@ -15,13 +15,14 @@
     align-items: center;
 }
 
-.updatesTitle{
+.updatesTitle {
     padding-top: 20px;
     color: #455a64;
     font-weight: 1000;
     font-style: oblique;
     padding-right: 800px;
 }
+
 .updatesForm {
     width: 80%;
     padding: 20px;
@@ -85,4 +86,23 @@
 
 .submitButton:active {
     transform: translateY(0.1em);
+}
+
+.dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    width: 10%;
+    overflow-y: auto;
+    list-style-type: none;
+}
+
+.dropdown li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown li:hover {
+    background-color: #f0f0f0;
 }

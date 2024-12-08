@@ -1,5 +1,5 @@
 import './Updates.css';
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import UserNavbar from '../../components/navbar/UserNavbar'; 
 
@@ -52,7 +52,6 @@ export default function Updates() {
         victims_sex: [],
         victims_descent: [],
         mocodes: [],
-        dr_numbers: [],
     });
 
     const [editableFields, setEditableFields] = useState({
@@ -76,16 +75,27 @@ export default function Updates() {
         Mocodes: false
     });
 
-    useEffect(() => {
-        // Fetch dropdown options from Django backend
-        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
-        .then((response) => {
-            setOptions(response.data);
+    const fetchOptions = (type) => {
+        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/", {
+            params: { type },
         })
-        .catch((error) => {
-            console.error("Error fetching dropdown options:", error);
-        });
-    }, []);
+        .then((response) => {
+            const newOptions = response.data[type] || [];
+            setOptions((prev) => ({
+                ...prev,
+                [type]: newOptions,
+            }));
+        })
+        .catch((error) => console.error(`Error fetching ${type} options:`, error));
+    };
+
+
+    // Εστίαση στο dropdown (onFocus)
+    const handleFocus = (type) => {
+        if (options[type].length === 0) {
+            fetchOptions(type, true); // Φόρτωσε από την αρχή αν δεν έχουν φορτωθεί επιλογές
+        }
+    };
 
 
     const loadRecordData = (drNo) => {
@@ -239,7 +249,22 @@ export default function Updates() {
                 console.error("Error during update:", error);
             });
     };
-    
+
+    const [searchResults, setSearchResults] = useState([]);
+
+    const handleSearch = (query) => {
+        if (query.length > 2) { // Αναζήτηση μετά από 3 χαρακτήρες
+            axios.get(`http://127.0.0.1:8000/api/db_manager/search-dr-numbers/`, {
+                params: { query }
+            })
+                .then((response) => {
+                    setSearchResults(response.data.dr_numbers || []);
+                })
+                .catch((error) => console.error("Error searching DR_NO:", error));
+        } else {
+            setSearchResults([]);
+        }
+    };
 
     return (
         <div className="updates">
@@ -251,23 +276,41 @@ export default function Updates() {
                     <div className="formRow">
                     
                     {/* --- DR_NO --- */}
+                
                     <div className="formField">
-                        <label htmlFor="DR_NO">DR_NO</label>
-                            <select
-                                id="DR_NO"
-                                name="DR_NO"
-                                value={formData.DR_NO || ""}
-                                onChange={(e) => { handleChange(e); handleDrNoChange(e); }}
+                    <label htmlFor="DR_NO">DR_NO</label>
+                    <input
+                        type="text"
+                        id="DR_NO"
+                        name="DR_NO"
+                        value={formData.DR_NO || ""}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({ ...prev, DR_NO: value })); // Ενημέρωση του DR_NO
+                            handleDrNoChange(e); // Φόρτωσε τα δεδομένα για το DR_NO
+                            handleSearch(value); // Εκκίνηση αναζήτησης για dropdown
+                        }}
+                        placeholder="Search DR_NO"
+                    />
+                    <ul className="dropdown">
+                        {searchResults.map((dr, index) => (
+                            <li
+                                key={index}
+                                onClick={() => {
+                                    setFormData((prev) => ({ ...prev, DR_NO: dr })); // Επιλογή DR_NO
+                                    handleDrNoChange({ target: { value: dr } }); // Φόρτωση δεδομένων για το επιλεγμένο DR_NO
+                                    setSearchResults([]); // Καθαρισμός dropdown
+                                }}
+                                style={{ cursor: "pointer" }}
                             >
-                            <option value="">Select DR_NO</option>
-                            {options.dr_numbers.map((dr, index) => (
-                                <option key={index} value={dr}>
-                                    {dr}
-                                </option>
-                            ))}
-                            </select>
-                    </div>
-                    
+                                {dr}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+
+                                    
                     {/* --- DateRptd --- */}
                     <div className="formField">
                         <label htmlFor="DateRptd">Date Rptd</label>
@@ -299,8 +342,8 @@ export default function Updates() {
                             id="AreaCode"
                             name="AreaCode"
                             value={isCustomCode.Area ? "custom" : formData.AreaCode}
+                            onFocus={() => handleFocus("area_codes")}
                             onChange={(e) => {
-                                const areaCode = e.target.value;
                                 handleCodeChange(e, "Area");
                             }}
                         >
@@ -353,6 +396,7 @@ export default function Updates() {
                                 id="CrmCdSelect"
                                 name="CrmCdSelect"
                                 value={isCustomCode.Crime_code ? "custom" : formData.CrmCd}
+                                onFocus={() => handleFocus("crime_codes")}
                                 onChange={(e) => handleCodeChange(e, "Crime_code")}
                             >
                                 <option value="">Select Crime Code</option>
@@ -402,6 +446,7 @@ export default function Updates() {
                             id="CrmCd2"
                             name="CrmCd2"
                             value={isCustomCode.CrmCdCustom2 ? "custom" :formData.CrmCd2}   
+                            onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -438,6 +483,7 @@ export default function Updates() {
                             id="CrmCd3"
                             name="CrmCd3"
                             value={isCustomCode.CrmCdCustom3 ? "custom" :formData.CrmCd3}   
+                            onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -474,6 +520,7 @@ export default function Updates() {
                             id="CrmCd4"
                             name="CrmCd4"
                             value={isCustomCode.CrmCdCustom4 ? "custom" :formData.CrmCd4}   
+                            onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -513,6 +560,7 @@ export default function Updates() {
                                 id="PremisCdSelect"
                                 name="PremisCdSelect"
                                 value={isCustomCode.Premises ? "custom" : formData.PremisCd}
+                                onFocus={() => handleFocus("premises")}
                                 onChange={(e) => handleCodeChange(e, "Premises")}
                             >
                                 <option value="">Select Premis Cd</option>
@@ -564,6 +612,7 @@ export default function Updates() {
                                 id="WeaponUsedCdSelect"
                                 name="WeaponUsedCdSelect"
                                 value={isCustomCode.Weapon ? "custom" : formData.WeaponUsedCd}
+                                onFocus={() => handleFocus("weapons")}
                                 onChange={(e) => handleCodeChange(e, "Weapon")}
                             >
                                 <option value="">Select Weapon Used Code</option>
@@ -660,6 +709,7 @@ export default function Updates() {
                                 id="StatusSelect"
                                 name="StatusSelect"
                                 value={isCustomCode.Status ? "custom" : formData.Status}
+                                onFocus={() => handleFocus("statuses")}
                                 onChange={(e) => handleCodeChange(e, "Status")}
                             >
                                 <option value="">Select Status</option>
@@ -711,6 +761,7 @@ export default function Updates() {
                             id="RptDistNo"
                             name="RptDistNo"
                             value={isCustomCode.RptDistNo ? "custom" :formData.RptDistNo}   
+                            onFocus={() => handleFocus("rpt_dists")}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -747,6 +798,7 @@ export default function Updates() {
                             id="Mocodes"
                             name="Mocodes"
                             value={isCustomCode.Mocodes ? "custom" : formData.Mocodes}
+                            onFocus={() => handleFocus("mocodes")} 
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -796,6 +848,7 @@ export default function Updates() {
                             id="VictSex"
                             name="VictSex"
                             value={formData.VictSex}
+                            onFocus={() => handleFocus("victims_sex")}
                             onChange={handleChange}
                         >
                         <option value="">Select Victim Sex</option>
@@ -810,6 +863,7 @@ export default function Updates() {
                             id="VictDescent"
                             name="VictDescent"
                             value={formData.VictDescent}
+                            onFocus={() => handleFocus("victims_descent")}
                             onChange={handleChange}
                         >
                         <option value="">Select Victim Descent</option>

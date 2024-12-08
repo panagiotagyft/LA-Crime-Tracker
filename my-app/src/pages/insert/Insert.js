@@ -1,5 +1,5 @@
 import './Insert.css';
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import UserNavbar from '../../components/navbar/UserNavbar'; 
 
@@ -73,16 +73,27 @@ export default function Insert() {
         Mocodes: false
     });
 
-    useEffect(() => {
-        // Fetch dropdown options from Django backend
-        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/")
-        .then((response) => {
-            setOptions(response.data);
+    const fetchOptions = (type) => {
+        axios.get("http://127.0.0.1:8000/api/db_manager/dropdown-options/", {
+            params: { type },
         })
-        .catch((error) => {
-            console.error("Error fetching dropdown options:", error);
-        });
-    }, []);
+        .then((response) => {
+            const newOptions = response.data[type] || [];
+            setOptions((prev) => ({
+                ...prev,
+                [type]: newOptions,
+            }));
+        })
+        .catch((error) => console.error(`Error fetching ${type} options:`, error));
+    };
+
+
+    // Εστίαση στο dropdown (onFocus)
+    const handleFocus = (type) => {
+        if (options[type].length === 0) {
+            fetchOptions(type, true); // Φόρτωσε από την αρχή αν δεν έχουν φορτωθεί επιλογές
+        }
+    };
 
     const handleCodeChange = (e, type) => {
         const codeValue = e.target.value;
@@ -325,9 +336,10 @@ export default function Insert() {
                             id="AreaCode"
                             name="AreaCode"
                             value={isCustomCode.Area ? "custom" : formData.AreaCode}
+                            onFocus={() => handleFocus("area_codes")}
                             onChange={(e) => {
                                 const areaCode = e.target.value;
-                                handleChange(e);
+                                handleCodeChange(e, "Area");
                                 if (formData.DateRptd) {generateDRNO(areaCode, formData.DateRptd);}
                             }}
                         >
@@ -384,6 +396,7 @@ export default function Insert() {
                                 id="CrmCdSelect"
                                 name="CrmCdSelect"
                                 value={isCustomCode.Crime_code ? "custom" : formData.CrmCd}
+                                onFocus={() => handleFocus("crime_codes")}
                                 onChange={(e) => handleCodeChange(e, "Crime_code")}
                             >
                                 <option value="">Select Crime Code</option>
@@ -391,6 +404,7 @@ export default function Insert() {
                                     <option key={index} value={crime}>{crime}</option>
                                 ))}
                                 <option value="custom">Other (Add New)</option>
+
                             </select>
                             {isCustomCode.Crime_code && (
                                 <input
@@ -432,7 +446,8 @@ export default function Insert() {
                         <select
                             id="CrmCd2"
                             name="CrmCd2"
-                            value={isCustomCode.CrmCdCustom2 ? "custom" :formData.CrmCd2}   
+                            value={isCustomCode.CrmCdCustom2 ? "custom" : formData.CrmCd2}
+                            onFocus={() => handleFocus("crime_codes")}    
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -450,6 +465,7 @@ export default function Insert() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
+
                         {isCustomCode.CrmCdCustom2 && (
                             <input
                                 type="number"
@@ -468,7 +484,8 @@ export default function Insert() {
                         <select
                             id="CrmCd3"
                             name="CrmCd3"
-                            value={isCustomCode.CrmCdCustom3 ? "custom" :formData.CrmCd3}   
+                            value={isCustomCode.CrmCdCustom3 ? "custom" : formData.CrmCd3}
+                            onFocus={() => handleFocus("crime_codes")}        
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -504,7 +521,8 @@ export default function Insert() {
                         <select
                             id="CrmCd4"
                             name="CrmCd4"
-                            value={isCustomCode.CrmCdCustom4 ? "custom" :formData.CrmCd4}   
+                            value={isCustomCode.CrmCdCustom4 ? "custom" : formData.CrmCd4} 
+                            onFocus={() => handleFocus("crime_codes")}        
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -522,6 +540,7 @@ export default function Insert() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
+
                         {isCustomCode.CrmCdCustom4 && (
                             <input
                                 type="number"
@@ -544,6 +563,7 @@ export default function Insert() {
                                 id="PremisCdSelect"
                                 name="PremisCdSelect"
                                 value={isCustomCode.Premises ? "custom" : formData.PremisCd}
+                                onFocus={() => handleFocus("premises")}
                                 onChange={(e) => handleCodeChange(e, "Premises")}
                             >
                                 <option value="">Select Premis Cd</option>
@@ -595,6 +615,7 @@ export default function Insert() {
                                 id="WeaponUsedCdSelect"
                                 name="WeaponUsedCdSelect"
                                 value={isCustomCode.Weapon ? "custom" : formData.WeaponUsedCd}
+                                onFocus={() => handleFocus("weapons")}
                                 onChange={(e) => handleCodeChange(e, "Weapon")}
                             >
                                 <option value="">Select Weapon Used Code</option>
@@ -691,6 +712,7 @@ export default function Insert() {
                                 id="StatusSelect"
                                 name="StatusSelect"
                                 value={isCustomCode.Status ? "custom" : formData.Status}
+                                onFocus={() => handleFocus("statuses")}
                                 onChange={(e) => handleCodeChange(e, "Status")}
                             >
                                 <option value="">Select Status</option>
@@ -699,6 +721,7 @@ export default function Insert() {
                                 ))}
                                 <option value="custom">Other (Add New)</option>
                             </select>
+
                             {isCustomCode.Status && (
                                 <input
                                     type="text"
@@ -742,6 +765,7 @@ export default function Insert() {
                             id="RptDistNo"
                             name="RptDistNo"
                             value={isCustomCode.RptDistNo ? "custom" :formData.RptDistNo}   
+                            onFocus={() => handleFocus("rpt_dists")}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -759,6 +783,7 @@ export default function Insert() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
+
                         {isCustomCode.RptDistNo && (
                             <input
                                 type="number"
@@ -778,6 +803,7 @@ export default function Insert() {
                             id="Mocodes"
                             name="Mocodes"
                             value={isCustomCode.Mocodes ? "custom" : formData.Mocodes}
+                            onFocus={() => handleFocus("mocodes")} 
                             onChange={(e) => {
                                 const value = e.target.value;
                                 if (value === "custom") {
@@ -795,6 +821,7 @@ export default function Insert() {
                         ))}
                         <option value="custom">Other (Add New)</option>
                         </select>
+
                         {isCustomCode.Mocodes && (
                             <input
                                 type="text"
@@ -827,6 +854,7 @@ export default function Insert() {
                             id="VictSex"
                             name="VictSex"
                             value={formData.VictSex}
+                            onFocus={() => handleFocus("victims_sex")}
                             onChange={handleChange}
                         >
                         <option value="">Select Victim Sex</option>
@@ -841,6 +869,7 @@ export default function Insert() {
                             id="VictDescent"
                             name="VictDescent"
                             value={formData.VictDescent}
+                            onFocus={() => handleFocus("victims_descent")}
                             onChange={handleChange}
                         >
                         <option value="">Select Victim Descent</option>
