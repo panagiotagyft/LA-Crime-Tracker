@@ -6,70 +6,68 @@ from datetime import datetime
 
 class DropdownOptionsView(APIView):
     def get(self, request):
+        option_type = request.query_params.get('type', None)
+
         try:
             with connection.cursor() as cursor:
+                if option_type == "area_codes":
+                    cursor.execute("SELECT area_id FROM Area")
+                    area_codes = [row[0] for row in cursor.fetchall()]
+                    area_codes = sorted(area_codes)
+                    data_list = area_codes
                 
-                cursor.execute("SELECT area_id FROM Area")
-                area_codes = [row[0] for row in cursor.fetchall()]
-                area_codes = sorted(area_codes)
-                
-                cursor.execute("SELECT area_name FROM Area")
-                area_names = [row[0] for row in cursor.fetchall()]
-                area_names = sorted(area_names)
+                elif option_type == "area_names": 
+                    cursor.execute("SELECT area_name FROM Area")
+                    area_names = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(area_names)
+                   
+                elif option_type == "crime_codes": 
+                    cursor.execute("""SELECT DISTINCT crm_cd FROM Crime_code""")
+                    crime_codes = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(crime_codes)
+                    
+                elif option_type == "premises":
+                    cursor.execute("""SELECT premis_cd FROM Premises""")
+                    premises = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(premises)
+                    
+                elif option_type == "weapons":
+                    cursor.execute("""SELECT weapon_cd FROM Weapon""")
+                    weapons = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(weapons)
+                  
+                elif option_type == "statuses":
+                    cursor.execute("SELECT status_code FROM Status")
+                    statuses = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(statuses)
+                   
+                elif option_type == "rpt_dists":
+                    cursor.execute("SELECT rpt_dist_no FROM Crime_report")
+                    rpt_dists = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(list(set(rpt_dists)))
+                   
+                elif option_type == "victims_sex":
+                    cursor.execute("SELECT vict_sex FROM Victim")
+                    victims_sex = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(dict.fromkeys(victims_sex))
+                    
+                elif option_type == "victims_descent":
+                    cursor.execute("SELECT vict_descent FROM Victim")
+                    victims_descent = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(dict.fromkeys(victims_descent))
+                    
+                elif option_type == "mocodes":
+                    cursor.execute("SELECT mocodes FROM Crime_report")
+                    mocodes = [row[0] for row in cursor.fetchall()]
+                    data_list = list(dict.fromkeys(mocodes))
+                    
 
-                cursor.execute("""SELECT DISTINCT crm_cd FROM Crime_code""")
-                crime_codes = [row[0] for row in cursor.fetchall()]
-                crime_codes = sorted(crime_codes)
+            data = { option_type: data_list }
 
-                cursor.execute("""SELECT premis_cd FROM Premises""")
-                premises = [row[0] for row in cursor.fetchall()]
-                premises = sorted(premises)
-
-                cursor.execute("""SELECT weapon_cd FROM Weapon""")
-                weapons = [row[0] for row in cursor.fetchall()]
-                weapons = sorted(weapons)
-
-                cursor.execute("SELECT status_code FROM Status")
-                statuses = [row[0] for row in cursor.fetchall()]
-                statuses = sorted(statuses)
-
-                cursor.execute("SELECT rpt_dist_no FROM Crime_report")
-                rpt_dists = [row[0] for row in cursor.fetchall()]
-                rpt_dists = sorted(list(set(rpt_dists)))
-
-                cursor.execute("SELECT vict_sex FROM Victim")
-                victims_sex = [row[0] for row in cursor.fetchall()]
-                victims_sex = sorted(dict.fromkeys(victims_sex))
-
-                cursor.execute("SELECT vict_descent FROM Victim")
-                victims_descent = [row[0] for row in cursor.fetchall()]
-                victims_descent = sorted(dict.fromkeys(victims_descent))
-
-                cursor.execute("SELECT mocodes FROM Crime_report")
-                mocodes = [row[0] for row in cursor.fetchall()]
-                mocodes = list(dict.fromkeys(mocodes))
-
-                cursor.execute("SELECT dr_no FROM Crime_report")
-                dr_numbers = [row[0] for row in cursor.fetchall()]
-                dr_numbers = sorted(dr_numbers)
-
-            data = {
-                "area_codes": area_codes,
-                "crime_codes": crime_codes,
-                "premises": premises,
-                "weapons": weapons,
-                "statuses": statuses,
-                "rpt_dists": rpt_dists,
-                "victims_sex": victims_sex,
-                "victims_descent": victims_descent,
-                "mocodes": mocodes,
-                "dr_numbers": dr_numbers,
-                "area_names": area_names
-            }
-           
             return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class GetCodeDescriptionView(APIView):
     def get(self, request):
@@ -98,6 +96,28 @@ class GetCodeDescriptionView(APIView):
             return Response({"description": None}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SearchDRNumbersView(APIView):
+    def get(self, request):
+        print("panaf")
+        query = request.query_params.get('query', '').strip()
+        
+        if not query:
+            return Response({"dr_numbers": []}, status=status.HTTP_200_OK)
+        print(f"panaf"+query)
+        try:
+            with connection.cursor() as cursor:
+                print("hello")
+                cursor.execute(
+                    "SELECT dr_no FROM Crime_report WHERE CAST(dr_no AS TEXT) LIKE %s LIMIT 50",
+                    [f"%{query}%"]
+                )
+                dr_numbers = [row[0] for row in cursor.fetchall()]
+            return Response({"dr_numbers": dr_numbers}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class GenerateDRNOView(APIView):
     def get(self, request):

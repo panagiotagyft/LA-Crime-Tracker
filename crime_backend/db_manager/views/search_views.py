@@ -1,6 +1,7 @@
 from django.db import connection 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.core.paginator import Paginator
 
 class SearchView(APIView):
     def get(self, request):
@@ -64,9 +65,19 @@ class SearchView(APIView):
                         "Victim age": row[25],
                         "Victim sex": row[26],  
                         "Victim descent": row[27]} for row in rows]
-            return Response(results, status=200)
+
+
+            paginator = Paginator(results, 500)  # 50 εγγραφές ανά σελίδα
+            page_number = request.query_params.get('page', 1)
+            page = paginator.get_page(page_number)
+            
+            return Response({
+                "results": list(page),
+                "total": paginator.count,
+                "pages": paginator.num_pages,
+                "current_page": page.number,
+            }, status=200)
         
         except Exception as e:
                 return Response({"error": str(e)}, status=500)
         
-
