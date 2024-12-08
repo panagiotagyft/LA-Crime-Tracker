@@ -22,7 +22,17 @@ class Query5View(APIView):
         try:
             with connection.cursor() as cursor:
                 sql = """
-                  #...
+                    SELECT cc.crm_cd, COUNT(*) AS frequency
+                    FROM crime_report cr
+                    JOIN crime_location cl ON cr.location_id = cl.location_id
+                    JOIN Crime_code cc ON cr.crm_cd = cc.crm_cd_id
+                    JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
+                    WHERE ts.date_occ = '{specific_date}'
+                    --AND cl.lat >= {min_lat} AND cl.lat <= {max_lat}     
+                    --AND cl.lon >= {min_lon} AND cl.lon <= {max_lon}     
+                    GROUP BY cc.crm_cd
+                    ORDER BY frequency DESC
+                    LIMIT 5;
                 """
                 cursor.execute(sql, [date, min_lat, max_lat, min_lon, max_lon])
                 rows = cursor.fetchall()

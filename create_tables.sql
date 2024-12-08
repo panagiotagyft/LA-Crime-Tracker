@@ -80,3 +80,13 @@ CREATE TABLE IF NOT EXISTS Victim (
     PRIMARY KEY (vict_id, dr_no), -- Composite primary key
     FOREIGN KEY (dr_no) REFERENCES Crime_report(dr_no)
 );
+
+---------------------------------------
+-- when we care only about equality, we use hash index
+CREATE INDEX IF NOT EXISTS Crime_report_crm_cd_idx ON Crime_report(crm_cd) USING hash (crm_cd);
+CREATE INDEX IF NOT EXISTS Crime_report_timestamp_id_idx ON Crime_report(timestamp_id);
+---------------------------------------
+CREATE INDEX IF NOT EXISTS Crime_report_area_id_idx ON Crime_report(area_id) USING hash (area_id);
+CREATE INDEX IF NOT EXISTS Crime_report_weapon_cd_idx ON Crime_report(weapon_cd) USING hash (weapon_cd);
+CREATE INDEX IF NOT EXISTS Area_area_name_idx ON Area(area_name) USING hash (area_name);
+CREATE INDEX IF NOT EXISTS Crime_report_location_id_idx ON Crime_report(location_id) USING hash (location_id);

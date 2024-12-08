@@ -18,7 +18,31 @@ class Query7View(APIView):
         try:
             with connection.cursor() as cursor:
                 sql = """
-                   #...
+                WITH AreaIncidentCounts AS (
+                    SELECT area_id
+                    FROM crime_report
+                    JOIN Timestamp ON crime_report.timestamp_id = Timestamp.timestamp_id
+                    WHERE date_occ BETWEEN %s AND %s
+                    GROUP BY area_id
+                    ORDER BY COUNT(*) DESC
+                    LIMIT 1
+                )
+                SELECT 
+                    cc1.crm_cd AS crime1,
+                    cc2.crm_cd AS crime2,
+                    COUNT(*) AS co_occurrence_count
+                FROM crime_report cr1
+                JOIN crime_report cr2 
+                    ON cr1.area_id = cr2.area_id 
+                    AND cr1.timestamp_id = cr2.timestamp_id
+                    AND cr1.dr_no < cr2.dr_no
+                JOIN Crime_code cc1 ON cc1.crm_cd_id = cr1.crm_cd
+                JOIN Crime_code cc2 ON cc2.crm_cd_id = cr2.crm_cd AND cc1.crm_cd_id < cc2.crm_cd_id
+                JOIN Timestamp ts1 ON cr1.timestamp_id = ts1.timestamp_id
+                WHERE cr1.area_id = (SELECT area_id FROM AreaIncidentCounts)
+                AND ts1.date_occ >= %s AND ts1.date_occ <= %s
+                GROUP BY crime1, crime2
+                ORDER BY co_occurrence_count DESC;
                 """
                 cursor.execute(sql, [start_date, end_date])
                 rows = cursor.fetchall()
