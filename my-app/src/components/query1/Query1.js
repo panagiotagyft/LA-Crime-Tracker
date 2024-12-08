@@ -3,7 +3,9 @@ import React, { useState } from "react";
 import axios from 'axios';
 
 export default function Query1() {
-  const [isFormVisible, setIsFormVisible] = useState(false); // Αρχικά η φόρμα είναι κρυφή
+
+  const [isFormVisible, setIsFormVisible] = useState(false); 
+
   const [times, setTimes] = useState({
     startTime: "",
     endTime: "",
@@ -12,7 +14,7 @@ export default function Query1() {
   const [error, setError] = useState(null);
 
   const toggleFormVisibility = () => {
-    setIsFormVisible((prev) => !prev); // Εναλλαγή μεταξύ ορατότητας και μη
+    setIsFormVisible((prev) => !prev); // Toggle Between Visibility and Invisibility
   };
 
   const handleChange = (e) => {
@@ -25,7 +27,7 @@ export default function Query1() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Καθαρισμός προηγούμενων σφαλμάτων
+    setError(null); // Error Cleanup
 
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/db_manager/query1/', {
@@ -36,9 +38,9 @@ export default function Query1() {
       });
 
       if (response.data.message) {
-        setError(response.data.message); // Εμφάνιση μηνύματος αν δεν υπάρχουν δεδομένα
+        setError(response.data.message); // Display Message if No Data Exists
       } else {
-        setResults(response.data); // Εμφάνιση αποτελεσμάτων
+        setResults(response.data); // Display Results
       }
       
     } catch (err) {
@@ -47,23 +49,21 @@ export default function Query1() {
   };
 
   const handleReset = () => {
-    // Καθαρισμός των πεδίων της φόρμας
+    
     setTimes({
       startTime: "",
       endTime: "",
     });
-    // Καθαρισμός αποτελεσμάτων
+  
     setResults([]);
-    // Κρύψιμο φόρμας
     setIsFormVisible(false);
-    // Καθαρισμός σφαλμάτων
     setError(null);
   };
 
   return (
     <div className='query1'>
       <div className='query1Box'>
-        {/* Περιγραφή που επεκτείνεται/συρρικνώνεται */}
+      
         <div
           className='query1Up'
           onClick={toggleFormVisibility}
@@ -74,7 +74,7 @@ export default function Query1() {
           </span>
         </div>
         <hr className='query1Line' />
-        {/* Εμφάνιση Φόρμας ή Πίνακα */}
+        {/* Display Table */}
         {isFormVisible && (
           <>
             <form className='query1Form' onSubmit={handleSubmit}>
