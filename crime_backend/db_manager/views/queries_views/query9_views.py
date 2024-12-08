@@ -6,7 +6,7 @@ class Query9View(APIView):
     def get(self, request):
 
         try:
-            print("Hello")
+            
             with connection.cursor() as cursor:
 
                 sql="""
@@ -30,7 +30,6 @@ class Query9View(APIView):
                         frequency
                     FROM WeaponFrequency
                     ORDER BY age_group, frequency DESC;
-
                 """
                 cursor.execute(sql)
                 rows = cursor.fetchall()
@@ -45,4 +44,3 @@ class Query9View(APIView):
         except Exception as e:
                 return Response({"error": str(e)}, status=500)
         
-

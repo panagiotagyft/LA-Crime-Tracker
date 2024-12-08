@@ -51,9 +51,8 @@ class Query3View(APIView):
                     JOIN Crime_code ON CrimeCounts.crime_code = Crime_code.crm_cd_id
                     WHERE Crime_code.crm_cd != -1
                     ORDER BY CrimeCounts.area_id, crime_count DESC;
-
                 """
-                cursor.execute(sql, [date, date, date, date])
+                cursor.execute(sql, [date])
                 rows = cursor.fetchall()
                 
             if not rows:  # Check if the list is empty.

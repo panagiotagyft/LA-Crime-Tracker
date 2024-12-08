@@ -6,9 +6,12 @@ from datetime import datetime
 class Query11View(APIView):
     def get(self, request):
         
-        crime_code1 = request.query_params.get('crime_code1')
-        crime_code2 = request.query_params.get('crime_code2')
-    
+        crime_code1 = request.query_params.get('crmCd1')
+        crime_code2 = request.query_params.get('crmCd2')
+
+        if not crime_code1 or not crime_code2:
+            return Response({"Error": "Crime codes 1 & 2 are required!"}, status=400)
+        
         sql = """
             SELECT area_name, report_date
             FROM (
@@ -21,7 +24,7 @@ class Query11View(APIView):
                 JOIN Crime_code cc ON cc.crm_cd_id = cr.crm_cd
                 JOIN area a ON cr.area_id = a.area_id
                 JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
-                WHERE cc.crm_cd_desc IN ('{crime1}', '{crime2}')
+                --WHERE cc.crm_cd_desc IN (%s, %s)
                 GROUP BY a.area_name, ts.date_occ, cc.crm_cd_desc
             ) AS crime_counts
             GROUP BY area_name, report_date
@@ -35,8 +38,9 @@ class Query11View(APIView):
                 cursor.execute(sql, [crime_code1, crime_code2])
                 rows = cursor.fetchall()
                 
+            print(rows)
             if not rows:  # Check if the list is empty.
-                return Response({"message": "No data available for the given time range."}, status=200)
+                return Response({"message": "No data available for the given crime codes."}, status=200)
             
             # Formatting results in JSON.
             results = [{"Area": row[0]} for row in rows]
@@ -45,4 +49,3 @@ class Query11View(APIView):
         except Exception as e:
                 return Response({"error": str(e)}, status=500)
         
-
