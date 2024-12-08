@@ -25,6 +25,11 @@ class DropdownOptionsView(APIView):
                     cursor.execute("""SELECT DISTINCT crm_cd FROM Crime_code""")
                     crime_codes = [row[0] for row in cursor.fetchall()]
                     data_list = sorted(crime_codes)
+
+                elif option_type == "crime_codes_desc": 
+                    cursor.execute("""SELECT DISTINCT crm_cd_desc FROM Crime_code""")
+                    crime_codes_desc = [row[0] for row in cursor.fetchall()]
+                    data_list = sorted(crime_codes_desc)
                     
                 elif option_type == "premises":
                     cursor.execute("""SELECT premis_cd FROM Premises""")
