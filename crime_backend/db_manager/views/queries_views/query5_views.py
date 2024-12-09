@@ -28,6 +28,7 @@ class Query5View(APIView):
                     JOIN Crime_code cc ON cr.crm_cd = cc.crm_cd_id
                     JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
                     WHERE ts.date_occ = %s
+                    AND cc.crm_cd <> -1
                     AND cl.lat >= %s AND cl.lat <= %s    
                     AND cl.lon >= %s AND cl.lon <= %s   
                     GROUP BY cc.crm_cd

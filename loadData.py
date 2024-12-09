@@ -196,41 +196,64 @@ print('ok for Weapon!')
 # ---------------------------------------------------------------------
 # Insert data into the -- Crime_code -- table
 # Collect all 'Crm Cd's and their descriptions
-crm_code_list = []
 
 # List to store all Crm Cd data
-crm_code_list = []
+# Βήμα 1: Εισαγωγή των Crm Cd με περιγραφές
+crm_code_list_primary = []
+crm_cd_col = 'Crm Cd'
+crm_cd_desc_col = 'Crm Cd Desc'
 
-# Loop through all Crm Cd {i} columns
-for i in range(1, 5):
-    if i == 1:
-        # For i = 1, include both Crm Cd and Crm Cd Desc
-        crm_cd_col = 'Crm Cd'
-        crm_cd_desc_col = 'Crm Cd Desc'
-        if crm_cd_col in df.columns and crm_cd_desc_col in df.columns:
-            temp_df = df[[crm_cd_col, crm_cd_desc_col]].drop_duplicates()  # Remove duplicates
-            temp_df.columns = ['crm_cd', 'crm_cd_desc']  # Rename columns for consistency
-            crm_code_list.append(temp_df)
-    else:
-        # For i = 2, 3, 4, only include Crm Cd {i}
-        crm_cd_col = f'Crm Cd {i}'
-        if crm_cd_col in df.columns:
-            temp_df = df[[crm_cd_col]].drop_duplicates()  # Remove duplicates
-            temp_df.columns = ['crm_cd']  # Rename the column
-            temp_df['crm_cd_desc'] = 'there is no description!'  # Add a description column with empty values
-            crm_code_list.append(temp_df)  # Append to the list
+if crm_cd_col in df.columns and crm_cd_desc_col in df.columns:
+    temp_df = df[[crm_cd_col, crm_cd_desc_col]].drop_duplicates()
+    temp_df.columns = ['crm_cd', 'crm_cd_desc']  # Μετονομασία για συνέπεια
+    crm_code_list_primary.append(temp_df)
 
+# Δημιουργία DataFrame για τα κύρια crm_cd
+crm_code_primary_df = pd.concat(crm_code_list_primary).drop_duplicates()
+crm_code_primary_df['crm_cd'] = crm_code_primary_df['crm_cd'].fillna(-1).astype(int)
+crm_code_primary_records = crm_code_primary_df.to_dict('records')
 
-crm_code_df = pd.concat(crm_code_list).drop_duplicates()
-crm_code_df['crm_cd'] = crm_code_df['crm_cd'].fillna(-1).astype(int)
-crm_code_records = crm_code_df.to_dict('records')
-
-# Insert into Crime_code
+# Εισαγωγή στη βάση δεδομένων
 execute_batch(cursor, """
     INSERT INTO Crime_code (crm_cd, crm_cd_desc)
     VALUES (%(crm_cd)s, %(crm_cd_desc)s)
-""", crm_code_records)
+""", crm_code_primary_records)
 conn.commit()
+print('Primary crm_cd inserted successfully!')
+
+# Βήμα 2: Εισαγωγή των Crm Cd 2, 3, 4 χωρίς περιγραφές
+crm_code_list_secondary = []
+
+for i in range(2, 5):
+    crm_cd_col = f'Crm Cd {i}'
+    if crm_cd_col in df.columns:
+        temp_df = df[[crm_cd_col]].drop_duplicates()
+        temp_df.columns = ['crm_cd']  # Μετονομασία της στήλης
+        temp_df['crm_cd_desc'] = 'there is no description!'  # Προσθήκη περιγραφής
+        crm_code_list_secondary.append(temp_df)
+
+# Δημιουργία DataFrame για τα δευτερεύοντα crm_cd
+crm_code_secondary_df = pd.concat(crm_code_list_secondary).drop_duplicates()
+crm_code_secondary_df['crm_cd'] = crm_code_secondary_df['crm_cd'].fillna(-1).astype(int)
+crm_code_secondary_records = crm_code_secondary_df.to_dict('records')
+
+# Δημιουργία συνόλου (set) των crm_cd από το primary_records
+primary_crm_codes = set(record['crm_cd'] for record in crm_code_primary_records)
+
+# Φιλτράρισμα του crm_code_secondary_records για να αφαιρεθούν τα διπλότυπα
+filtered_secondary_records = [
+    record for record in crm_code_secondary_records 
+    if record['crm_cd'] not in primary_crm_codes
+]
+
+# Εισαγωγή των φιλτραρισμένων δεδομένων στον πίνακα Crime_code
+execute_batch(cursor, """
+    INSERT INTO Crime_code (crm_cd, crm_cd_desc)
+    VALUES (%(crm_cd)s, %(crm_cd_desc)s)
+""", filtered_secondary_records)
+conn.commit()
+print('Secondary crm_cd inserted successfully!')
+
 print('ok for Crime_code!')
 
 # Retrieve mapping from crm_cd to crm_cd_id
