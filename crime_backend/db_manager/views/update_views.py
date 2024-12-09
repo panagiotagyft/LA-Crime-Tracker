@@ -281,34 +281,40 @@ class UpdateView(APIView):
                         params = []
                         for field in fields:
                             params += [fields_to_update[key] for key in field.keys()]
+                        
                         if len(params) == 1:
+                            print("1 param")
                             key = list(field.keys())[0]
-
+                            print(f"row[2] {row[2]}")
                             cursor.execute("""
                                 SELECT date_occ, time_occ FROM Timestamp WHERE timestamp_id = %s 
-                            """, (row[2],))
-                            date_occ, time_occ = cursor.fetchone()[0]
-                                
+                            """, [str(row[2])])
+                            date_occ, time_occ = cursor.fetchone() 
+                            print({date_occ, time_occ })
                             if key == "DateOcc":
                                 params = [parse_date(fields_to_update[key]), time_occ]
                             else:
                                 params = [date_occ, parse_time(fields_to_update[key])]
+                                print("time")
 
                             
                         cursor.execute("""
                             SELECT COUNT(*) FROM Timestamp WHERE date_occ = %s AND time_occ = %s
                         """, params)
                         exists = cursor.fetchone()[0]
-
+                        print(f"exists: {exists}")
                         if exists == 0: 
                             params = []
                             for field in fields:
                                 key = list(field.keys())[0]
 
-                                if key == "DateOcc": params.insert(0, parse_date(fields_to_update[key]))
+                                if key == "DateOcc": 
+                                    params.insert(0, parse_date(fields_to_update[key]))
+                                    params.append(time_occ)
                                 else:
+                                    params.append(date_occ)
                                     params.append(parse_time(fields_to_update[key]))  
-
+                            print(params)
                             cursor.execute("""
                                 INSERT INTO Timestamp (date_occ, time_occ)
                                 VALUES (%s, %s)
