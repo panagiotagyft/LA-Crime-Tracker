@@ -83,29 +83,34 @@ CREATE TABLE IF NOT EXISTS Victim (
 
 -- Index for crime date and time
 CREATE INDEX IF NOT EXISTS idx_date_occ ON Timestamp(date_occ);
-CREATE INDEX IF NOT EXISTS idx_time_occ ON Timestamp(time_occ); 
-CREATE INDEX IF NOT EXISTS Crime_report_timestamp_id_idx ON Crime_report(timestamp_id);
+CREATE INDEX IF NOT EXISTS idx_time_occ ON Timestamp(time_occ);
+CREATE INDEX IF NOT EXISTS idx_crime_report_timestamp_id ON Crime_report(timestamp_id);
+
+CREATE INDEX IF NOT EXISTS idx_crime_code_crm_cd ON Crime_code(crm_cd);
 
 -- Index for primary crime code
-CREATE INDEX idx_crm_cd ON Crime_report(crm_cd); 
+CREATE INDEX IF NOT EXISTS idx_crm_cd ON Crime_report(crm_cd);
 
 -- Indexes for secondary crime codes
-CREATE INDEX idx_crm_cd_2 ON Crime_report(crm_cd_2);
-CREATE INDEX idx_crm_cd_3 ON Crime_report(crm_cd_3);
-CREATE INDEX idx_crm_cd_4 ON Crime_report(crm_cd_4);
+CREATE INDEX IF NOT EXISTS idx_crm_cd_2 ON Crime_report(crm_cd_2);
+CREATE INDEX IF NOT EXISTS idx_crm_cd_3 ON Crime_report(crm_cd_3);
+CREATE INDEX IF NOT EXISTS idx_crm_cd_4 ON Crime_report(crm_cd_4);
 
 -- Index for area (Area ID)
-CREATE INDEX idx_area_id ON Crime_report(area_id); 
-CREATE INDEX idx_area_name ON Area(area_name);
+CREATE INDEX IF NOT EXISTS idx_area_id ON Crime_report(area_id);
+CREATE INDEX IF NOT EXISTS idx_area_name ON Area(area_name);
 
 -- Indexes for geographic data (Latitude and Longitude)
-CREATE INDEX idx_lat_lon ON Crime_Location(lat, lon); -- Speeds up geographic searches using latitude and longitude
+CREATE INDEX IF NOT EXISTS idx_lat_lon ON Crime_Location(lat, lon);
 
 -- Index for victim's age
-CREATE INDEX idx_vict_age ON Victim(vict_age); -- Optimizes queries categorizing victims by age
+CREATE INDEX IF NOT EXISTS idx_vict_age ON Victim(vict_age);
 
 -- Index for crime status code
-CREATE INDEX idx_status_code ON Crime_report(status_code); 
+CREATE INDEX IF NOT EXISTS idx_status_code ON Crime_report(status_code);
 
 -- Index for weapon type
-CREATE INDEX idx_weapon_cd ON Crime_report(weapon_cd);
+CREATE INDEX IF NOT EXISTS idx_weapon_cd ON Crime_report(weapon_cd);
+
+CREATE INDEX IF NOT EXISTS idx_crime_report_date_rptd ON Crime_Report(date_rptd);
+CREATE INDEX IF NOT EXISTS idx_crime_report_rpt_dist_no ON Crime_report(rpt_dist_no);
