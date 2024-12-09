@@ -40,7 +40,7 @@ class Query5View(APIView):
                 print(rows)
                     
             if not rows:
-                return Response([], status=200)
+                return Response({"message": "No data available."}, status=200)
 
             result = [{"crime_code": row[0], "crime_count": row[1]} for row in rows]
             return Response(result, status=200)
