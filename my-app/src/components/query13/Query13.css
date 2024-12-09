@@ -110,7 +110,7 @@
 }
 
 .resultsTableWrapper {
-    width: 100%;
+    min-width: 90%;
     max-height: 400px;
     overflow-y: auto;
     margin-top: 20px;

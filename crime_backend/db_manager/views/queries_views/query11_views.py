@@ -8,29 +8,39 @@ class Query11View(APIView):
         
         crime_code1 = request.query_params.get('crmCd1')
         crime_code2 = request.query_params.get('crmCd2')
-
+        print(crime_code1)
+        print(crime_code2)
         if not crime_code1 or not crime_code2:
             return Response({"Error": "Crime codes 1 & 2 are required!"}, status=400)
         
         sql = """
-            SELECT area_name, report_date
-            FROM (
+            WITH FilteredCrimes AS (
                 SELECT 
-                    a.area_name,
-                    ts.date_occ AS report_date,
+                    a.area_name, 
+                    ts.date_occ AS report_date, 
                     cc.crm_cd_desc,
                     COUNT(*) AS report_count
                 FROM crime_report cr
-                JOIN Crime_code cc ON cc.crm_cd_id = cr.crm_cd
                 JOIN area a ON cr.area_id = a.area_id
+                JOIN Crime_code cc ON cr.crm_cd = cc.crm_cd_id
                 JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
-                --WHERE cc.crm_cd_desc IN (%s, %s)
+                WHERE cc.crm_cd_desc IN (%s, %s) 
                 GROUP BY a.area_name, ts.date_occ, cc.crm_cd_desc
-            ) AS crime_counts
-            GROUP BY area_name, report_date
-            HAVING COUNT(DISTINCT crm_cd_desc) = 2
-            AND MIN(report_count) > 1  -- Ensure at least 2 reports for each crime
-            ORDER BY area_name, report_date;
+            ),
+            CrimeCounts AS (
+                SELECT 
+                    area_name, 
+                    report_date,
+                    COUNT(DISTINCT crm_cd_desc) AS distinct_crimes,
+                    report_count
+                FROM FilteredCrimes
+                GROUP BY area_name, report_date, report_count
+            )
+            SELECT 
+                area_name
+            FROM CrimeCounts
+            WHERE distinct_crimes = 2
+            GROUP BY area_name
         """
 
         try:

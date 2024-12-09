@@ -18,33 +18,42 @@ class Query13View(APIView):
             return Response({"error": "Start/End time and N are required."}, status=400)
     
         sql = """
-            WITH AuxiliaryTable1 AS(
-                SELECT code.crm_cd AS crime_cd, 
-                    time.date_occ AS date,
-                    wp.weapon_cd AS weapon_cd,
-                    cr.area_id AS area_id,
-                    COUNT(code.crm_cd)
-                FROM Crime_report AS cr
-                JOIN Weapon AS wp ON cr.weapon_cd = wp.weapon_cd
-                JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id
-                JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id
-                WHERE wp.weapon_cd <> -1 AND code.crm_cd <> -1 AND time.time_occ BETWEEN %s AND %s 
-                GROUP BY code.crm_cd 
-                HAVING COUNT(code.crm_cd) = %s
+            WITH Filtered_Crimes AS (
+                SELECT 
+                    cr.area_id AS area_id, 
+                    cr.crm_cd AS crime_code_id,
+                    cr.weapon_cd AS weapon_cd, 
+                    ts.date_occ AS date,
+                    COUNT(cr.dr_no) AS counter
+                FROM Crime_report cr
+                JOIN Timestamp ts ON cr.timestamp_id = ts.timestamp_id
+                WHERE ts.time_occ BETWEEN %s AND %s
+                GROUP BY cr.area_id, cr.crm_cd, cr.weapon_cd, ts.date_occ
+                HAVING COUNT(cr.dr_no) = %s
             ),
-            DR_NO_LIST AS(
-                SELECT dr_no
-                FROM AuxiliaryTable1 AS aux
-                JOIN Crime_report AS cr ON cr.weapon_cd = aux.weapon_cd AND cr.area_id = aux.area_id
-                JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id AND code.crm_cd = aux.crime_cd
-                JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id AND time.date_occ = aux.date
+            DRCODES AS (
+                SELECT
+                    cr.dr_no, 
+                    cr.area_id AS area_id, 
+                    cr.crm_cd AS crime_code_id, 
+                    cr.weapon_cd AS weapon_cd,
+                    ts.date_occ AS date 
+                FROM Filtered_Crimes fc
+                JOIN Timestamp ts ON ts.date_occ = fc.date
+                JOIN Crime_report cr ON 
+                    fc.area_id = cr.area_id AND 
+                    fc.crime_code_id = cr.crm_cd AND
+                    fc.weapon_cd = cr.weapon_cd AND
+                    ts.timestamp_id = cr.timestamp_id
+                ORDER BY cr.area_id, cr.crm_cd, cr.weapon_cd, ts.date_occ
             )
-            SELECT DISTINCT cr.dr_no, a.area_name, code.crm_cd_desc, wp.weapon_desc
-            FROM DR_NO_LIST AS dr
-            JOIN Crime_report AS cr ON dr.dr_no = cr.dr_no 
-            JOIN Area AS a ON a.area_id = cr.area_id 
-            JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id
-            JOIN Weapon AS wp ON cr.weapon_cd = wp.weapon_cd
+            SELECT d.dr_no, a.area_name, code.crm_cd_desc, wp.weapon_desc
+            FROM DRCODES d
+            JOIN Area a ON a.area_id = d.area_id
+            JOIN Crime_code code ON code.crm_cd_id = d.crime_code_id
+            JOIN Weapon wp ON wp.weapon_cd = d.weapon_cd
+            WHERE code.crm_cd <> -1 AND wp.weapon_cd <> -1
+            ORDER BY a.area_name, code.crm_cd_desc, wp.weapon_desc;
         """
 
         try:
