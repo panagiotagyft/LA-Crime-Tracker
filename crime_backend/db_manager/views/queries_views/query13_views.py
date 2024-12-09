@@ -19,31 +19,31 @@ class Query13View(APIView):
     
         sql = """
             WITH AuxiliaryTable1 AS(
-                SELECT crm_cd.crm_cd AS crime_cd, 
+                SELECT code.crm_cd AS crime_cd, 
                     time.date_occ AS date,
                     wp.weapon_cd AS weapon_cd,
-                    cr.area_id AS area_id
+                    cr.area_id AS area_id,
+                    COUNT(code.crm_cd)
                 FROM Crime_report AS cr
                 JOIN Weapon AS wp ON cr.weapon_cd = wp.weapon_cd
                 JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id
-                JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id
-                WHERE wp.weapon_cd <> -1 AND crm_cd.crm_cd <> -1 AND time.time_occ BETWEEN %s AND %s 
-                GROUP BY crm_cd.crm_cd, time.date_occ, wp.weapon_cd, cr.area_id 
-                HAVING COUNT(crm_cd.crm_cd) = %s
-                ORDER BY crm_cd.crm_cd, time.date_occ, wp.weapon_cd, cr.area_id
+                JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id
+                WHERE wp.weapon_cd <> -1 AND code.crm_cd <> -1 AND time.time_occ BETWEEN %s AND %s 
+                GROUP BY code.crm_cd 
+                HAVING COUNT(code.crm_cd) = %s
             ),
             DR_NO_LIST AS(
                 SELECT dr_no
                 FROM AuxiliaryTable1 AS aux
                 JOIN Crime_report AS cr ON cr.weapon_cd = aux.weapon_cd AND cr.area_id = aux.area_id
-                JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id AND crm_cd.crm_cd = aux.crime_cd
+                JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id AND code.crm_cd = aux.crime_cd
                 JOIN Timestamp AS time ON time.timestamp_id = cr.timestamp_id AND time.date_occ = aux.date
             )
-            SELECT DISTINCT cr.dr_no, a.area_name, crm_cd.crm_cd_desc, wp.weapon_desc
+            SELECT DISTINCT cr.dr_no, a.area_name, code.crm_cd_desc, wp.weapon_desc
             FROM DR_NO_LIST AS dr
             JOIN Crime_report AS cr ON dr.dr_no = cr.dr_no 
             JOIN Area AS a ON a.area_id = cr.area_id 
-            JOIN Crime_code AS crm_cd ON cr.crm_cd = crm_cd.crm_cd_id
+            JOIN Crime_code AS code ON cr.crm_cd = code.crm_cd_id
             JOIN Weapon AS wp ON cr.weapon_cd = wp.weapon_cd
         """
 
