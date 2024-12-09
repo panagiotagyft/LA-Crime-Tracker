@@ -86,10 +86,9 @@ export default function Insert() {
     };
 
 
-    // Εστίαση στο dropdown (onFocus)
     const handleFocus = (type) => {
         if (options[type].length === 0) {
-            fetchOptions(type, true); // Φόρτωσε από την αρχή αν δεν έχουν φορτωθεί επιλογές
+            fetchOptions(type, true);
         }
     };
 
