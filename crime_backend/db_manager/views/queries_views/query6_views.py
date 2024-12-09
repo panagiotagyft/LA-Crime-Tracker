@@ -43,7 +43,7 @@ class Query6View(APIView):
                 rows = cursor.fetchall()
                 
             if not rows:
-                return Response({"message": "No data available for the given time range."}, status=200)
+                return Response({"message": "No data available for the given date range."}, status=200)
             
             if input_type == 'area_name':
                 results = [{"area_name": row[0], "total_crimes": row[1]} for row in rows]
