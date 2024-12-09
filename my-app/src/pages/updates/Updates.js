@@ -245,8 +245,8 @@ export default function Updates() {
         console.log("Changes to be updated:", changesLog);
 
         const payload = {
-            DR_NO: formData.DR_NO, // Προσθήκη του DR_NO
-            ...changesLog,         // Συμπερίληψη των αλλαγών
+            DR_NO: formData.DR_NO, // Addition of DR_NO
+            ...changesLog,         // Incorporation of Changes
         };
         console.log(Object.keys(changesLog))
         if (Object.keys(changesLog).length === 0) {
@@ -268,7 +268,7 @@ export default function Updates() {
     const [searchResults, setSearchResults] = useState([]);
 
     const handleSearch = (query) => {
-        if (query.length > 2) { // Αναζήτηση μετά από 3 χαρακτήρες
+        if (query.length > 2) { // Search After 3 Characters
             axios.get(`http://127.0.0.1:8000/api/db_manager/search-dr-numbers/`, {
                 params: { query }
             })
@@ -301,9 +301,9 @@ export default function Updates() {
                         value={formData.DR_NO || ""}
                         onChange={(e) => {
                             const value = e.target.value;
-                            setFormData((prev) => ({ ...prev, DR_NO: value })); // Ενημέρωση του DR_NO
-                            handleDrNoChange(e); // Φόρτωσε τα δεδομένα για το DR_NO
-                            handleSearch(value); // Εκκίνηση αναζήτησης για dropdown
+                            setFormData((prev) => ({ ...prev, DR_NO: value })); // Update DR_NO
+                            handleDrNoChange(e); // Load the Data for DR_NO
+                            handleSearch(value); // Initiate Search for Dropdown
                         }}
                         placeholder="Search DR_NO"
                     />
@@ -312,9 +312,9 @@ export default function Updates() {
                             <li
                                 key={index}
                                 onClick={() => {
-                                    setFormData((prev) => ({ ...prev, DR_NO: dr })); // Επιλογή DR_NO
-                                    handleDrNoChange({ target: { value: dr } }); // Φόρτωση δεδομένων για το επιλεγμένο DR_NO
-                                    setSearchResults([]); // Καθαρισμός dropdown
+                                    setFormData((prev) => ({ ...prev, DR_NO: dr })); // select DR_NO
+                                    handleDrNoChange({ target: { value: dr } }); // Load Data for the Selected DR_NO
+                                    setSearchResults([]); 
                                 }}
                                 style={{ cursor: "pointer" }}
                             >

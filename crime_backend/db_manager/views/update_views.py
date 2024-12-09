@@ -8,21 +8,19 @@ class UpdateView(APIView):
         print("Hello")
        
         items = list(request.data.items())
-        print(items[0])  # Πρώτο ζεύγος κλειδιού-τιμής
+        print(items[0])  
         _, dr_no = items[0]
         dr_no=str(dr_no)
-        print(f"dr_no: "+ dr_no)
+
         if not dr_no:
             return Response({"error": "DR_NO is required"}, status=400)
-        print("Hello")
-        print(request.data.items() )
+
         # Identify fields to be updated.
         fields_to_update = {key: value for key, value in request.data.items() if key != 'DR_NO' and value is not None}
         print(fields_to_update)
         if not fields_to_update:
             return Response({"error": "No fields to update"}, status=400)
-        
-        # Δημιουργία log
+ 
         changes_log = [{"field": key, "new_value": value} for key, value in fields_to_update.items()]
 
         data_tables = {
@@ -90,15 +88,15 @@ class UpdateView(APIView):
             "Crime_codeDesc": "crm_cd_desc",    
         }
 
-        # Κατανομή των δεδομένων στο tables_data
+        # Distribution of Data into tables_data
         for field, value in fields_to_update.items():
-            table = data_tables.get(field)  # Βρες σε ποιον πίνακα ανήκει το πεδίο
+            table = data_tables.get(field)  # Find Which Table the Field Belongs To
             if table:
                 tables_data[table].append({field: value})
 
         print("Tables Data:", tables_data)
 
-        # 7. Εκτέλεση των δυναμικών ενημερώσεων params= [fields_to_update[key] for key in field.keys()]
+        # 7. Executing Dynamic Updates with params = [fields_to_update[key] for key in field.keys()]
         try:
             with connection.cursor() as cursor:
 
@@ -375,25 +373,24 @@ class UpdateView(APIView):
                                 total_paramas_crm_rpt[correctedField[key]] = fields_to_update[key]
                                 print("line296")
 
-                # Αποθήκευση των κλειδιών σε μια λίστα
+                
                 keys = list(total_paramas_crm_rpt.keys())
 
-                # Δημιουργία της λίστας params1 με σωστούς τύπους δεδομένων
+                # Creation of the params1 List with Correct Data Types
                 params1 = []
                 for key in keys:
                     value = total_paramas_crm_rpt[key]
-                    # Ελέγξτε τον τύπο δεδομένων που αναμένεται για το πεδίο
                     if key in ['area_id', 'premis_cd', 'crm_cd', 'weapon_cd', 'crm_cd_2', 'crm_cd_3', 'crm_cd_4', 'rpt_dist_no', 'timestamp_id']:
-                        # Μετατροπή σε ακέραιο
+                        # convert to integer
                         params1.append(int(value))
                     elif key == 'date_rptd':
-                        # Μετατροπή σε αντικείμενο ημερομηνίας (αν απαιτείται)
+                        # Conversion to a Date Object (if Required)
                         params1.append(datetime.strptime(value, '%Y-%m-%d'))  # Ή datetime.strptime(value, '%Y-%m-%d') αν χρειάζεται
                     else:
-                        # Διατήρηση ως συμβολοσειρά
+                        # Keep as String
                         params1.append(value)
                 
-                # Προσθήκη του dr_no στο τέλος
+                # Append dr_no at the End
                 params1.append(int(dr_no))
                 set_clause = ', '.join([f"{key} = %s" for key in keys])
                 print("Set Clause:", set_clause)
@@ -407,10 +404,6 @@ class UpdateView(APIView):
                     """
                     cursor.execute(sql, params1)
 
-                                    
-            # Αποθήκευση του log
-            # (Αν έχετε κάποιο πίνακα `UpdateLog` μπορείτε να το αποθηκεύσετε εκεί)
-            # print("Update Log:", changes_log)  # Ή αποθηκεύστε το σε βάση δεδομένων
 
             return Response({"message": "Record updated successfully", "log": changes_log}, status=200)
         except Exception as e:

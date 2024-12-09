@@ -134,7 +134,7 @@ class GenerateDRNOView(APIView):
             print(year)
             print(date_rptd)
             with connection.cursor() as cursor:
-                # Βρίσκουμε τον επόμενο διαθέσιμο αριθμό για το συγκεκριμένο Area ID και date_rptd
+                # Find the Next Available Number for the Specific Area ID and date_rptd
                 query = """
                     SELECT COUNT(*) + 1 
                     FROM Crime_report 
@@ -144,7 +144,7 @@ class GenerateDRNOView(APIView):
                 next_record_number = cursor.fetchone()[0]
                 print(next_record_number)
             year = year % 100
-            # Δημιουργούμε το DR_NO
+            # Generate the DR_NO
             dr_no = f"{year:02}{int(area_id):02}{next_record_number:05}"
             print(dr_no)
             return Response({"dr_no": dr_no}, status=status.HTTP_200_OK)
