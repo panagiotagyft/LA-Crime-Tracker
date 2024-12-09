@@ -30,10 +30,15 @@ class Query12View(APIView):
                 GROUP BY date_rptd, weapon_cd, area_id
                 HAVING COUNT(area_id) = 1
                 ORDER BY date_rptd, weapon_cd, area_id
+            ),
+            AllRes AS (
+                SELECT date_rptd, weapon_cd, COUNT(*) as num_drno
+                FROM RemoveDuplicates
+                GROUP BY date_rptd, weapon_cd
             )
-            SELECT date_rptd, weapon_cd, COUNT(*)
-            FROM RemoveDuplicates
-            GROUP BY date_rptd, weapon_cd;
+            SELECT date_rptd, weapon_cd, num_drno
+            FROM AllRes
+            WHERE num_drno > 1;
         """
 
         try:
