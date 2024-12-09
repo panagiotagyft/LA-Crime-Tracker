@@ -69,7 +69,7 @@ class InsertView(APIView):
                         VALUES (%s, %s)
                         ON CONFLICT (area_id) DO NOTHING
                     """, [area_id, area_name])
-                print('line204')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Crime_Location -- table
                 with connection.cursor() as cursor:
@@ -88,7 +88,7 @@ class InsertView(APIView):
                     location_id = cursor.fetchone()[0]
                     
                     
-                print('line224')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Status -- table
                 with connection.cursor() as cursor:
@@ -98,7 +98,7 @@ class InsertView(APIView):
                         ON CONFLICT (status_code) DO NOTHING
                     """, [status_code, status_desc])
                     connection.commit()
-                print('line233')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Premises -- table
                 with connection.cursor() as cursor:
@@ -108,7 +108,7 @@ class InsertView(APIView):
                         ON CONFLICT (premis_cd) DO NOTHING
                     """, [premis_cd, premis_desc])
                     connection.commit()
-                print('line242')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Weapon -- table
                 with connection.cursor() as cursor:
@@ -118,7 +118,7 @@ class InsertView(APIView):
                         ON CONFLICT (weapon_cd) DO NOTHING
                     """, [weapon_cd, weapon_desc])
                     connection.commit()
-                print('line251')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Crime_code -- table
                 # Insert main crime code
@@ -185,7 +185,7 @@ class InsertView(APIView):
                     """, (crm_cd4,))
                     crm_cd4_id = cursor.fetchone()[0]
 
-                print('line319')
+               
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Timestamp -- table
                 with connection.cursor() as cursor:
@@ -196,7 +196,7 @@ class InsertView(APIView):
                     # Retrieve timestamp_id
                     cursor.execute("SELECT timestamp_id FROM Timestamp WHERE date_occ = %s AND time_occ = %s", [date_occ, time_occ])
                     timestamp_id = cursor.fetchone()[0]
-                print('line319')
+              
                 # ---------------------------------------------------------------------
                 # # Insert data into the -- Reporting_District -- table
                 # if rpt_dist_no and area_id:
@@ -220,7 +220,7 @@ class InsertView(APIView):
                         area_id, location_id, mocodes, weapon_cd, crm_cd_id,
                         crm_cd2_id, crm_cd3_id, crm_cd4_id
                     ])
-                print('line373')
+             
                 # ---------------------------------------------------------------------
                 # Insert data into the -- Victim -- table
                 if vict_age or vict_sex or vict_descent:
@@ -232,7 +232,7 @@ class InsertView(APIView):
                         """, [
                             dr_no, vict_age, vict_sex, vict_descent
                         ])
-                print('line385')
+             
                 return Response({'message': 'Record inserted successfully'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:

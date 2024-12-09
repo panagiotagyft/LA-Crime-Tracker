@@ -51,7 +51,6 @@ export default function Updates() {
         rpt_dists: [],
         victims_sex: [],
         victims_descent: [],
-        mocodes: [],
     });
 
     const [editableFields, setEditableFields] = useState({
@@ -72,7 +71,6 @@ export default function Updates() {
         Weapon: false,
         Status: false,
         RptDistNo: false,
-        Mocodes: false
     });
 
     const fetchOptions = (type) => {
@@ -90,10 +88,9 @@ export default function Updates() {
     };
 
 
-    // Εστίαση στο dropdown (onFocus)
     const handleFocus = (type) => {
         if (options[type].length === 0) {
-            fetchOptions(type, true); // Φόρτωσε από την αρχή αν δεν έχουν φορτωθεί επιλογές
+            fetchOptions(type, true); 
         }
     };
 
@@ -230,18 +227,34 @@ export default function Updates() {
             setFormData((prevData) => ({ ...prevData, RptDistNo: "" }));
         }
 
-        if (name === "Mocodes" && value === "custom") {
-            setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
-            setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
-        }
+        setChangesLog((prevLog) => {
+            console.log("Previous changesLog:", prevLog);
+            const updatedLog = {
+                ...prevLog,
+                [name]: value,
+            };
+            console.log("Updated changesLog:", updatedLog);
+            return updatedLog;
+        });
     };
 
 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Changes to be updated:", changesLog); // Εδώ βλέπετε τις αλλαγές που θα σταλούν.
-        axios.post("http://127.0.0.1:8000/api/db_manager/update-record/", changesLog)
+        console.log("Changes to be updated:", changesLog);
+
+        const payload = {
+            DR_NO: formData.DR_NO, // Προσθήκη του DR_NO
+            ...changesLog,         // Συμπερίληψη των αλλαγών
+        };
+        console.log(Object.keys(changesLog))
+        if (Object.keys(changesLog).length === 0) {
+            alert("Please make some changes before submitting.");
+            return;
+        }
+
+        axios.post("http://127.0.0.1:8000/api/db_manager/update-record/", payload)
             .then((response) => {
                 alert("Update successful");
             })
@@ -249,6 +262,8 @@ export default function Updates() {
                 console.error("Error during update:", error);
             });
     };
+
+
 
     const [searchResults, setSearchResults] = useState([]);
 
@@ -449,6 +464,7 @@ export default function Updates() {
                             onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
                                 const value = e.target.value;
+                                handleChange(e);
                                 if (value === "custom") {
                                     setIsCustomCode((prev) => ({ ...prev, CrmCdCustom2: true }));
                                     setFormData((prevData) => ({ ...prevData, CrmCd2: "" }));
@@ -468,9 +484,10 @@ export default function Updates() {
                             <input
                                 type="number"
                                 name="CrmCdCustom2"
-                                placeholder="Enter new Rpt Dist No"
+                                placeholder="Enter new Crime Code2"
                                 value={formData.CrmCd2}
-                                onChange={(e) => {
+                                    onChange={(e) => {
+                                    handleChange(e);
                                     const value = e.target.value;
                                     setFormData((prevData) => ({ ...prevData, CrmCd2: value }));
                                 }}
@@ -485,6 +502,7 @@ export default function Updates() {
                             value={isCustomCode.CrmCdCustom3 ? "custom" :formData.CrmCd3}   
                             onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
+                                handleChange(e);
                                 const value = e.target.value;
                                 if (value === "custom") {
                                     setIsCustomCode((prev) => ({ ...prev, CrmCdCustom3: true }));
@@ -509,6 +527,7 @@ export default function Updates() {
                                 value={formData.CrmCd3}
                                 onChange={(e) => {
                                     const value = e.target.value;
+                                    handleChange(e);
                                     setFormData((prevData) => ({ ...prevData, CrmCd3: value }));
                                 }}
                             />
@@ -523,6 +542,7 @@ export default function Updates() {
                             onFocus={() => handleFocus("crime_codes")}
                             onChange={(e) => {
                                 const value = e.target.value;
+                                handleChange(e);
                                 if (value === "custom") {
                                     setIsCustomCode((prev) => ({ ...prev, CrmCdCustom4: true }));
                                     setFormData((prevData) => ({ ...prevData, CrmCd4: "" }));
@@ -764,6 +784,7 @@ export default function Updates() {
                             onFocus={() => handleFocus("rpt_dists")}
                             onChange={(e) => {
                                 const value = e.target.value;
+                                handleChange(e);
                                 if (value === "custom") {
                                     setIsCustomCode((prev) => ({ ...prev, RptDistNo: true }));
                                     setFormData((prevData) => ({ ...prevData, RptDistNo: "" }));
@@ -787,6 +808,7 @@ export default function Updates() {
                                 value={formData.RptDistNo}
                                 onChange={(e) => {
                                     const value = e.target.value;
+                                    handleChange(e);
                                     setFormData((prevData) => ({ ...prevData, RptDistNo: value }));
                                 }}
                             />
@@ -794,40 +816,17 @@ export default function Updates() {
                     </div>
                     <div className="formField">
                         <label htmlFor="Mocodes">Mocodes</label>
-                        <select
-                            id="Mocodes"
+                        <input
+                            type="text"
                             name="Mocodes"
-                            value={isCustomCode.Mocodes ? "custom" : formData.Mocodes}
-                            onFocus={() => handleFocus("mocodes")} 
+                            placeholder="Enter new Mocodes"
+                            value={formData.Mocodes}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                if (value === "custom") {
-                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
-                                } else {
-                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: false }));
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
-                                }
+                                handleChange(e);
+                                setFormData((prevData) => ({ ...prevData, Mocodes: value }));
                             }}
-                        >
-                        <option value="">Select Mocodes</option>
-                        {options.mocodes.map((code, index) => (
-                            <option key={index} value={code}>{code}</option>
-                        ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-                        {isCustomCode.Mocodes && (
-                            <input
-                                type="text"
-                                name="Mocodes"
-                                placeholder="Enter new Mocodes"
-                                value={formData.Mocodes}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
-                                }}
-                            />
-                        )}
+                        />
                     </div>
                     </div>
 

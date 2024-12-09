@@ -5,15 +5,23 @@ from datetime import datetime
 
 class UpdateView(APIView):
     def post(self, request):
-        dr_no = request.data.get('DR_NO')
+        print("Hello")
+       
+        items = list(request.data.items())
+        print(items[0])  # Πρώτο ζεύγος κλειδιού-τιμής
+        _, dr_no = items[0]
+        dr_no=str(dr_no)
+        print(f"dr_no: "+ dr_no)
         if not dr_no:
             return Response({"error": "DR_NO is required"}, status=400)
+        print("Hello")
         print(request.data.items() )
         # Identify fields to be updated.
         fields_to_update = {key: value for key, value in request.data.items() if key != 'DR_NO' and value is not None}
+        print(fields_to_update)
         if not fields_to_update:
             return Response({"error": "No fields to update"}, status=400)
-        print(fields_to_update)
+        
         # Δημιουργία log
         changes_log = [{"field": key, "new_value": value} for key, value in fields_to_update.items()]
 
@@ -50,7 +58,6 @@ class UpdateView(APIView):
             "Crime_Location" : [],
             "Status": [],
             "Premises": [],
-            # "Reporting_District": [],
             "Crime_code": [],
             "Weapon": [],
             "Timestamp": [],
@@ -119,7 +126,7 @@ class UpdateView(APIView):
                 for table, fields in tables_data.items():
                     if not fields: continue
                     print(f"line113 {fields}")
-
+                    print(table)
                     if table == "Crime_Location" or table == "Victim":
                         conditions = []
                         for field in fields:
@@ -392,22 +399,14 @@ class UpdateView(APIView):
                 print("Set Clause:", set_clause)
                 print("Parameters:", params1)
 
-                # Εκτέλεση της SQL εντολής
-                sql = f"""
-                    UPDATE Crime_report
-                    SET {set_clause}
-                    WHERE dr_no = %s
-                """
-                cursor.execute(sql, params1)
+                if len(params1) > 1:
+                    sql = f"""
+                        UPDATE Crime_report
+                        SET {set_clause}
+                        WHERE dr_no = %s
+                    """
+                    cursor.execute(sql, params1)
 
-
-                # Εκτέλεση της SQL εντολής
-                sql = """
-                    SELECT * FROM Crime_report WHERE dr_no = %s
-                """
-                cursor.execute(sql, (dr_no,))
-                exists = cursor.fetchall()
-                # print(exists)   
                                     
             # Αποθήκευση του log
             # (Αν έχετε κάποιο πίνακα `UpdateLog` μπορείτε να το αποθηκεύσετε εκεί)

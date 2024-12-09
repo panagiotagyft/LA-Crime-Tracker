@@ -61,11 +61,6 @@ class DropdownOptionsView(APIView):
                     victims_descent = [row[0] for row in cursor.fetchall()]
                     data_list = sorted(dict.fromkeys(victims_descent))
                     
-                elif option_type == "mocodes":
-                    cursor.execute("SELECT mocodes FROM Crime_report")
-                    mocodes = [row[0] for row in cursor.fetchall()]
-                    data_list = list(dict.fromkeys(mocodes))
-                    
 
             data = { option_type: data_list }
 
@@ -105,15 +100,15 @@ class GetCodeDescriptionView(APIView):
 
 class SearchDRNumbersView(APIView):
     def get(self, request):
-        print("panaf")
+        
         query = request.query_params.get('query', '').strip()
         
         if not query:
             return Response({"dr_numbers": []}, status=status.HTTP_200_OK)
-        print(f"panaf"+query)
+        
         try:
             with connection.cursor() as cursor:
-                print("hello")
+               
                 cursor.execute(
                     "SELECT dr_no FROM Crime_report WHERE CAST(dr_no AS TEXT) LIKE %s LIMIT 50",
                     [f"%{query}%"]

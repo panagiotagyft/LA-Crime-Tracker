@@ -49,7 +49,6 @@ export default function Insert() {
         rpt_dists: [],
         victims_sex: [],
         victims_descent: [],
-        mocodes: [],
     });
 
     const [editableFields, setEditableFields] = useState({
@@ -70,7 +69,6 @@ export default function Insert() {
         Weapon: false,
         Status: false,
         RptDistNo: false,
-        Mocodes: false
     });
 
     const fetchOptions = (type) => {
@@ -190,11 +188,6 @@ export default function Insert() {
         if (name === "RptDistNo" && value === "custom") {
             setIsCustomCode((prev) => ({ ...prev, RptDistNo: true }));
             setFormData((prevData) => ({ ...prevData, RptDistNo: "" }));
-        }
-
-        if (name === "Mocodes" && value === "custom") {
-            setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
-            setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
         }
     };
 
@@ -799,41 +792,16 @@ export default function Insert() {
                     </div>
                     <div className="formField">
                         <label htmlFor="Mocodes">Mocodes</label>
-                        <select
-                            id="Mocodes"
+                        <input
+                            type="text"
                             name="Mocodes"
-                            value={isCustomCode.Mocodes ? "custom" : formData.Mocodes}
-                            onFocus={() => handleFocus("mocodes")} 
+                            placeholder="Enter new Mocodes"
+                            value={formData.Mocodes}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                if (value === "custom") {
-                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: true }));
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: "" }));
-                                } else {
-                                    setIsCustomCode((prev) => ({ ...prev, Mocodes: false }));
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
-                                }
+                                setFormData((prevData) => ({ ...prevData, Mocodes: value }));
                             }}
-                        >
-                        <option value="">Select Mocodes</option>
-                        {options.mocodes.map((code, index) => (
-                            <option key={index} value={code}>{code}</option>
-                        ))}
-                        <option value="custom">Other (Add New)</option>
-                        </select>
-
-                        {isCustomCode.Mocodes && (
-                            <input
-                                type="text"
-                                name="Mocodes"
-                                placeholder="Enter new Mocodes"
-                                value={formData.Mocodes}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prevData) => ({ ...prevData, Mocodes: value }));
-                                }}
-                            />
-                        )}
+                        />
                     </div>
                     </div>
 

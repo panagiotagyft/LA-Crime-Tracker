@@ -14,7 +14,6 @@ class Query3View(APIView):
         if not date:
             return Response({"Error": "Date is required!!"}, status=400)
   
-        print(date)
         try:
             with connection.cursor() as cursor:
 
